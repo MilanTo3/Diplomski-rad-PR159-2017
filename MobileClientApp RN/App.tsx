@@ -19,14 +19,6 @@ import {
   Animated
 } from 'react-native';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-
 import React, { useEffect, useState, useRef } from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import { Divider } from '@rneui/themed';
@@ -35,7 +27,6 @@ import Icon from 'react-native-vector-icons/Entypo';
 import Iconk from 'react-native-vector-icons/FontAwesome6';
 import Iconm from 'react-native-vector-icons/MaterialCommunityIcons';
 import Collapsible from 'react-native-collapsible';
-
 
 import { Table, TableWrapper, Row, Rows } from 'react-native-table-component';
 import mqtt from 'precompiled-mqtt';
@@ -78,23 +69,6 @@ import mqtt from 'precompiled-mqtt';
       ['11 +', 'Ekstremno zračenje']
     ]
   };
-
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 0,
-      duration: 500,
-      useNativeDriver: true,
-    }).start();
-
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 500,
-      useNativeDriver: true,
-      delay: 500
-    }).start();
-  }, [activateAnimation]);
 
   setInterval(function() {
     fetch('https://api.thingspeak.com/channels/2429193/feeds.json?api_key=SN0PE5PQW96QTD3R&results=1').then(x => x.json()).then(json => setttData({temperature: Number(json.feeds[0].field1), airH: json.feeds[0].field2, airQ: json.feeds[0].field4, soilH: json.feeds[0].field3, uvIndex: json.feeds[0].field5}));
@@ -195,11 +169,6 @@ import mqtt from 'precompiled-mqtt';
                       <Iconk style={{color: 'rgba(2, 48, 71 ,1)', margin: 3}} name="temperature-low" size={24} color="black" />
                       <Text style={styles.labela}>Temperatura:</Text>
                       <Text style={styles.labela}>{ttData.temperature} °C</Text>
-                      <Animated.View style={{
-        opacity: fadeAnim, // Bind opacity to animated value
-      }}>
-                      <Text style={styles.labela}>{ttData.temperature} °C</Text>
-                      </Animated.View>
                     </View> : null }
 
                     { tempCollapsed ?
