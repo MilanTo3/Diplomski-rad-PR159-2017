@@ -31,6 +31,11 @@ import Collapsible from 'react-native-collapsible';
 import { Table, TableWrapper, Row, Rows } from 'react-native-table-component';
 import mqtt from 'precompiled-mqtt';
 
+const toFahrenheit = function (celsius){
+  let fahren = (9/5 * celsius) + 32;
+  return fahren;
+};
+
  function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
 
@@ -70,10 +75,15 @@ import mqtt from 'precompiled-mqtt';
     ]
   };
 
-  setInterval(function() {
-    fetch('https://api.thingspeak.com/channels/2429193/feeds.json?api_key=SN0PE5PQW96QTD3R&results=1').then(x => x.json()).then(json => setttData({temperature: Number(json.feeds[0].field1), airH: json.feeds[0].field2, airQ: json.feeds[0].field4, soilH: json.feeds[0].field3, uvIndex: json.feeds[0].field5}));
-    setActivateAnimation(!activateAnimation);
-  }, 15000);
+  useEffect(() => {
+    const interval = setInterval(function() {
+      fetch('https://api.thingspeak.com/channels/2429193/feeds.json?api_key=SN0PE5PQW96QTD3R&results=1').then(x => x.json()).then(json => setttData({temperature: Number(json.feeds[0].field1), airH: json.feeds[0].field2, airQ: json.feeds[0].field4, soilH: json.feeds[0].field3, uvIndex: json.feeds[0].field5}));
+      setActivateAnimation(!activateAnimation);
+      console.log('here2');
+    }, 15000);
+
+    return () => clearInterval(interval);
+  });
 
   return (
     <SafeAreaView style={{flex:1}}>
@@ -179,7 +189,7 @@ import mqtt from 'precompiled-mqtt';
                       </View>
                       <View style={styles.spreadViewRightPart}>
                         <Text style={styles.labela}>Temperatura:</Text>
-                        <Text style={styles.labelaBigger}>{ttData.temperature} °C / <Text style={styles.labelaBigger}>55 °F</Text></Text>
+                        <Text style={styles.labelaBigger}>{ttData.temperature} °C / <Text style={styles.labelaBigger}>{toFahrenheit(ttData.temperature)} °F</Text></Text>
                       </View>
                     </View>
                     }
