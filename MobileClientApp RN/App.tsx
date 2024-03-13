@@ -50,7 +50,6 @@ const toFahrenheit = function (celsius){
   const [airQModalVisible, setairQModalVisible] = useState(false);
   const [uvModalVisible, setUVModalVisible] = useState(false);
   const [ttData, setttData] = useState({ temperature: 0, airH: '0', airQ: '0', soilH: '0', uvIndex: '0' });
-  const [activateAnimation, setActivateAnimation] = useState(false);
 
   const airstate = {
     tableHead: ['Indeks:', 'Kvalitet Vazduha:'],
@@ -75,12 +74,27 @@ const toFahrenheit = function (celsius){
     ]
   };
 
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const fadeIn = () => {
+    // Will change fadeAnim value to 1 in 5 seconds
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+      delay:500
+    }).start();
+  };
+
   useEffect(() => {
+
     const interval = setInterval(function() {
       fetch('https://api.thingspeak.com/channels/2429193/feeds.json?api_key=SN0PE5PQW96QTD3R&results=1').then(x => x.json()).then(json => setttData({temperature: Number(json.feeds[0].field1), airH: json.feeds[0].field2, airQ: json.feeds[0].field4, soilH: json.feeds[0].field3, uvIndex: json.feeds[0].field5}));
-      setActivateAnimation(!activateAnimation);
-      console.log('here2');
+      console.log('here3');
+      fadeAnim.resetAnimation();
+      fadeIn();
+      
     }, 15000);
+
 
     return () => clearInterval(interval);
   });
@@ -178,7 +192,9 @@ const toFahrenheit = function (celsius){
                     { tempCollapsed ? <View style={styles.headerKartica}>
                       <Iconk style={{color: 'rgba(2, 48, 71 ,1)', margin: 3}} name="temperature-low" size={24} color="black" />
                       <Text style={styles.labela}>Temperatura:</Text>
-                      <Text style={styles.labela}>{ttData.temperature} °C</Text>
+                      <Animated.View style={[{opacity: fadeAnim}]}>
+                        <Text style={styles.labela}>{ttData.temperature} °C</Text>
+                      </Animated.View>
                     </View> : null }
 
                     { tempCollapsed ?
@@ -189,7 +205,9 @@ const toFahrenheit = function (celsius){
                       </View>
                       <View style={styles.spreadViewRightPart}>
                         <Text style={styles.labela}>Temperatura:</Text>
-                        <Text style={styles.labelaBigger}>{ttData.temperature} °C / <Text style={styles.labelaBigger}>{toFahrenheit(ttData.temperature)} °F</Text></Text>
+                        <Animated.View style={[{opacity: fadeAnim}]}>
+                          <Text style={styles.labelaBigger}>{ttData.temperature} °C / <Text style={styles.labelaBigger}>{toFahrenheit(ttData.temperature)} °F</Text></Text>
+                        </Animated.View>
                       </View>
                     </View>
                     }
@@ -203,7 +221,9 @@ const toFahrenheit = function (celsius){
                     { airHCollapsed ? <View style={styles.headerKartica}>
                       <Iconm style={{color: 'rgba(2, 48, 71 ,1)'}} name="cloud" size={24} color="black" />
                       <Text style={styles.labela}>Vlažnost Vazduha:</Text>
-                      <Text style={styles.labela}>{ttData.airH}%</Text>
+                      <Animated.View style={[{opacity: fadeAnim}]}>
+                        <Text style={styles.labela}>{ttData.airH} %</Text>
+                      </Animated.View>
                     </View> : null}
 
                     { airHCollapsed ?
@@ -215,7 +235,9 @@ const toFahrenheit = function (celsius){
                       <View style={styles.spreadViewRightPart}>
                         <Text style={styles.labela}>Vlažnost vazduha:</Text>
                         <Text style={styles.labela}>[Relativna]</Text>
-                        <Text style={styles.labelaBigger}>{ttData.airH}%</Text>
+                        <Animated.View style={[{opacity: fadeAnim}]}>
+                          <Text style={styles.labelaBigger}>{ttData.airH} %</Text>
+                        </Animated.View>
                       </View>
                     </View>
                     }
@@ -229,7 +251,9 @@ const toFahrenheit = function (celsius){
                     { soilHCollapsed ? <View style={styles.headerKartica}>
                       <Iconk style={{color: 'rgba(2, 48, 71 ,1)'}} name="glass-water-droplet" size={24} color="black" />
                       <Text style={styles.labela}>Vlažnost Zemljišta:</Text>
-                      <Text style={styles.labela}>{ttData.soilH}%</Text>
+                      <Animated.View style={[{opacity: fadeAnim}]}>
+                        <Text style={styles.labela}>{ttData.soilH} %</Text>
+                      </Animated.View>
                     </View> : null}
 
                     { soilHCollapsed ?
@@ -240,7 +264,9 @@ const toFahrenheit = function (celsius){
                       </View>
                       <View style={styles.spreadViewRightPart}>
                         <Text style={styles.labela}>Vlažnost Zemljišta:</Text>
-                        <Text style={styles.labelaBigger}>{ttData.soilH}%</Text>
+                        <Animated.View style={[{opacity: fadeAnim}]}>
+                          <Text style={styles.labelaBigger}>{ttData.soilH} %</Text>
+                        </Animated.View>
                       </View>
                     </View>
                     }
@@ -254,7 +280,9 @@ const toFahrenheit = function (celsius){
                     { airQCollapsed ? <View style={styles.headerKartica}>
                       <Icon style={{color: 'rgba(2, 48, 71 ,1)'}} name="air" size={24} color="black" />
                       <Text style={styles.labela}>Kvalitet Vazduha:</Text>
-                      <Text style={styles.labela}>{ttData.airQ} [ppm]</Text>
+                      <Animated.View style={[{opacity: fadeAnim}]}>
+                        <Text style={styles.labela}>{ttData.airQ} [ppm]</Text>
+                      </Animated.View>
                     </View> : null}
 
                     { airQCollapsed ?
@@ -266,7 +294,9 @@ const toFahrenheit = function (celsius){
                         </View>
                         <View style={styles.spreadViewRightPart}>
                           <Text style={styles.labela}>Kvalitet Vazduha:</Text>
-                          <Text style={styles.labelaBigger}>{ttData.airQ} [ppm]</Text>
+                          <Animated.View style={[{opacity: fadeAnim}]}>
+                            <Text style={styles.labelaBigger}>{ttData.airQ} [ppm]</Text>
+                          </Animated.View>
                           <Text style={styles.labela}>[Prihvatljiv]</Text>
                         </View>
                       </View>
@@ -290,7 +320,9 @@ const toFahrenheit = function (celsius){
                     { uvCollapsed ? <View style={styles.headerKartica}>
                       <Iconm style={{color: 'rgba(2, 48, 71 ,1)'}} name="sun-wireless" size={24} color="black" />
                       <Text style={styles.labela}>UV indeks:</Text>
-                      <Text style={styles.labela}>{ttData.uvIndex}</Text>
+                      <Animated.View style={[{opacity: fadeAnim}]}>
+                        <Text style={styles.labela}>{ttData.uvIndex}</Text>
+                      </Animated.View>
                     </View> : null}
 
                     { uvCollapsed ?
@@ -302,7 +334,9 @@ const toFahrenheit = function (celsius){
                         </View>
                         <View style={styles.spreadViewRightPart}>
                           <Text style={styles.labela}>UV indeks:</Text>
-                          <Text style={styles.labelaBigger}>{ttData.uvIndex}</Text>
+                          <Animated.View style={[{opacity: fadeAnim}]}>
+                            <Text style={styles.labelaBigger}>{ttData.uvIndex}</Text>
+                          </Animated.View>
                         </View>
                       </View>
 
