@@ -49,7 +49,7 @@ const toFahrenheit = function (celsius){
 
   const [airQModalVisible, setairQModalVisible] = useState(false);
   const [uvModalVisible, setUVModalVisible] = useState(false);
-  const [ttData, setttData] = useState({ temperature: 0, airH: '0', airQ: '0', soilH: '0', uvIndex: '0' });
+  const [ttData, setttData] = useState({ temperature: 0, airH: '0', airQ: '0', soilH: '0', uvIndex: '0', createdAt: '' });
 
   const airstate = {
     tableHead: ['Indeks:', 'Kvalitet Vazduha:'],
@@ -88,11 +88,12 @@ const toFahrenheit = function (celsius){
   useEffect(() => {
 
     const interval = setInterval(function() {
-      fetch('https://api.thingspeak.com/channels/2429193/feeds.json?api_key=SN0PE5PQW96QTD3R&results=1').then(x => x.json()).then(json => setttData({temperature: Number(json.feeds[0].field1), airH: json.feeds[0].field2, airQ: json.feeds[0].field4, soilH: json.feeds[0].field3, uvIndex: json.feeds[0].field5}));
+      fetch('https://api.thingspeak.com/channels/2429193/feeds.json?api_key=ICM2FPX89P99HRT1&results=1&timezone=Europe/Belgrade').then(x => x.json()).then(k => console.log(k));
+      fetch('https://api.thingspeak.com/channels/2429193/feeds.json?api_key=ICM2FPX89P99HRT1&results=1&timezone=Europe/Belgrade').then(x => x.json()).then(json => setttData({temperature: Number(json.feeds[0].field1), airH: json.feeds[0].field2, airQ: json.feeds[0].field4, soilH: json.feeds[0].field3, uvIndex: json.feeds[0].field5, createdAt: json.feeds[0].created_at}));
       console.log('here3');
       fadeAnim.resetAnimation();
       fadeIn();
-      
+
     }, 15000);
 
 
@@ -177,7 +178,10 @@ const toFahrenheit = function (celsius){
                 </LinearGradient>
 
               </View>
-              <Text style={styles.title2}>Ažurirano: 24.04.2024 14:34:32</Text>
+              <Text style={styles.title2}>Poslednje ažurirano: </Text>
+              <Animated.View style={[{opacity: fadeAnim}]}>
+                <Text style={styles.title2}>{ttData.createdAt.replace('T', ' ').replaceAll('-', '.').replace('+01:00', '')}</Text>
+              </Animated.View>
 
           </LinearGradient>
           </ImageBackground>
@@ -352,6 +356,8 @@ const toFahrenheit = function (celsius){
                 </Collapsible>
               </TouchableOpacity>
             </LinearGradient>
+            <Divider width={3} color={'#8ecae6'} />
+            
           </LinearGradient>
       </ScrollView>
     </SafeAreaView>
