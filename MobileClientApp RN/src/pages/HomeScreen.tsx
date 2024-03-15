@@ -15,7 +15,8 @@ import {
     ImageBackground,
     TouchableOpacity,
     Modal,
-    Animated
+    Animated,
+    Button
   } from 'react-native';
   
   import React, { useEffect, useState, useRef } from 'react';
@@ -35,68 +36,59 @@ import {
     return fahren;
   };
   
-   function HomeScreen(): React.JSX.Element {
+function HomeScreen({navigation}): React.JSX.Element {
   
-    const imgsrc = {uri: 'https://img.freepik.com/free-photo/sunny-meadow-landscape_1112-134.jpg?size=626&ext=jpg&ga=GA1.1.2008272138.1708732800&semt=ais'};
+  const imgsrc = {uri: 'https://img.freepik.com/free-photo/sunny-meadow-landscape_1112-134.jpg?size=626&ext=jpg&ga=GA1.1.2008272138.1708732800&semt=ais'};
     
-    const [tempCollapsed, tempCollapse] = useState(true);
-    const [airHCollapsed, airHCollapse] = useState(true);
-    const [soilHCollapsed, soilHCollapse] = useState(true);
-    const [airQCollapsed, airQCollapse] = useState(true);
-    const [uvCollapsed, uvCollapse] = useState(true);
+  const [tempCollapsed, tempCollapse] = useState(true);
+  const [airHCollapsed, airHCollapse] = useState(true);
+  const [soilHCollapsed, soilHCollapse] = useState(true);
+  const [airQCollapsed, airQCollapse] = useState(true);
+  const [uvCollapsed, uvCollapse] = useState(true);
   
-    const [airQModalVisible, setairQModalVisible] = useState(false);
-    const [uvModalVisible, setUVModalVisible] = useState(false);
-    const [ttData, setttData] = useState({ temperature: 0, airH: '0', airQ: '0', soilH: '0', uvIndex: '0', createdAt: '' });
+  const [airQModalVisible, setairQModalVisible] = useState(false);
+  const [uvModalVisible, setUVModalVisible] = useState(false);
+  const [ttData, setttData] = useState({ temperature: 0, airH: '0', airQ: '0', soilH: '0', uvIndex: '0', createdAt: '' });
   
-    const airstate = {
-      tableHead: ['Indeks:', 'Kvalitet Vazduha:'],
-      tableData: [
-        ['0 - 33', 'Veoma dobar'],
-        ['34 - 66', 'Dobar'],
-        ['67 - 99', 'Prihvatljiv'],
-        ['100 - 149', 'Loš'],
-        ['150 - 200', 'Veoma Loš'],
-        ['201 +', 'Izuzetno Loš']
-      ]
-    };
+  const airstate = {
+    tableHead: ['Indeks:', 'Kvalitet Vazduha:'],
+    tableData: [
+      ['0 - 33', 'Veoma dobar'], ['34 - 66', 'Dobar'],
+      ['67 - 99', 'Prihvatljiv'], ['100 - 149', 'Loš'],
+      ['150 - 200', 'Veoma Loš'], ['201 +', 'Izuzetno Loš']]};
   
-    const uvstate = {
-      tableHead: ['UV Indeks:', 'Opis zračenja:'],
-      tableData: [
-        ['0 - 2', 'Nisko zračenje'],
-        ['3 - 5', 'Umereno zračenje'],
-        ['6 - 7', 'Visoko zračenje'],
-        ['8 - 10', 'Veoma visoko zračenje'],
-        ['11 +', 'Ekstremno zračenje']
-      ]
-    };
+  const uvstate = {
+    tableHead: ['UV Indeks:', 'Opis zračenja:'],
+    tableData: [
+      ['0 - 2', 'Nisko zračenje'],
+      ['3 - 5', 'Umereno zračenje'],
+      ['6 - 7', 'Visoko zračenje'],
+      ['8 - 10', 'Veoma visoko zračenje'],
+      ['11 +', 'Ekstremno zračenje']]};
   
-    const fadeAnim = useRef(new Animated.Value(0)).current;
-    const fadeIn = () => {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const fadeIn = () => {
       // Will change fadeAnim value to 1 in 5 seconds
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-        delay:100
-      }).start();
-    };
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+      delay:100
+    }).start();};
   
-    useEffect(() => {
+  useEffect(() => {
   
-      const interval = setInterval(function() {
-        fetch('https://api.thingspeak.com/channels/2429193/feeds.json?api_key=ICM2FPX89P99HRT1&results=1&timezone=Europe/Belgrade').then(x => x.json()).then(k => console.log(k));
-        fetch('https://api.thingspeak.com/channels/2429193/feeds.json?api_key=ICM2FPX89P99HRT1&results=1&timezone=Europe/Belgrade').then(x => x.json()).then(json => setttData({temperature: Number(json.feeds[0].field1), airH: json.feeds[0].field2, airQ: json.feeds[0].field4, soilH: json.feeds[0].field3, uvIndex: json.feeds[0].field5, createdAt: json.feeds[0].created_at}));
-        console.log('here3');
-        fadeAnim.resetAnimation();
-        fadeIn();
+    const interval = setInterval(function() {
+      fetch('https://api.thingspeak.com/channels/2429193/feeds.json?api_key=ICM2FPX89P99HRT1&results=1&timezone=Europe/Belgrade').then(x => x.json()).then(json => setttData({temperature: Number(json.feeds[0].field1), airH: json.feeds[0].field2, airQ: json.feeds[0].field4, soilH: json.feeds[0].field3, uvIndex: json.feeds[0].field5, createdAt: json.feeds[0].created_at}));
+      console.log('here3');
+      fadeAnim.resetAnimation();
+      fadeIn();
   
-      }, 15000);
+  }, 15000);
   
   
-      return () => clearInterval(interval);
-    });
+    return () => clearInterval(interval);
+  });
   
     return (
         <ScrollView contentInsetAdjustmentBehavior="automatic" style={{backgroundColor: 'black'}}>
@@ -166,11 +158,14 @@ import {
                   </LinearGradient>
   
                   <LinearGradient start={{x: 0, y: 0}} end={{x: 0.3, y: 1.0}} colors={['rgba(255, 183, 3 ,1)', 'rgba(251, 133, 0, 1)']} style={styles.kartica}>
-                    <Text style={styles.title3}>Signal:</Text>
-                    <View style={styles.iconStyle}>
-                      <Icon style={{margin: 11, color: 'rgba(2, 48, 71 ,1)'}} name="signal" size={27} color="#8ecae6" />
-                    </View>
-                    <Text style={styles.title3}>Dobar</Text>
+                    <TouchableOpacity onPress={() => navigation.navigate('history')}>
+                        <Text style={styles.title3}>Istorijat</Text>
+
+                            <View style={styles.iconStyle}>
+                            <Iconm style={{margin: 11, color: 'rgba(2, 48, 71 ,1)'}} name="history" size={27} color="#8ecae6" />
+                            </View>
+                        <Text style={styles.title3}>podataka</Text>
+                    </TouchableOpacity>
                   </LinearGradient>
   
                 </View>
@@ -544,6 +539,6 @@ import {
     wrapper: { flexDirection: 'row' },
     titlek: { flex: 1, backgroundColor: '#f6f8fa' },
   
-  });
+});
   
-  export default HomeScreen;
+export default HomeScreen;
