@@ -25,7 +25,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LinearGradient from 'react-native-linear-gradient';
 import { LineChart } from 'react-native-gifted-charts';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { color } from 'react-native-reanimated';
 import SelectDropdown from 'react-native-select-dropdown';
 import { Divider } from '@rneui/themed';
@@ -45,6 +45,40 @@ function HistoryScreen({navigation}): React.JSX.Element {
   const opcije = ["Temperatura", "Vlažnost vazduha", "Vlažnost zemljišta", "Kvalitet vazduha", "UV indeks"];
   const range = ["Danas", "Ove nedelje", "Ovog meseca"];
 
+  useEffect(() => {
+
+    if (navigation.isFocused){
+      let build = '';
+
+      if(izabranOpseg !== -1 && izabranaVelicina !== -1){
+        build = 'https://api.thingspeak.com/channels/2429193/fields/' + izabranaVelicina.toString() + '.json?api_key=ICM2FPX89P99HRT1&start=';
+        
+        let today = new Date();
+        today.setHours(today.getHours() + 1);
+        let temp = new Date();
+
+        temp.setHours(1);
+        temp.setMinutes(0);
+        temp.setSeconds(1);
+
+        if(izabranOpseg == 1){
+          temp.setDate(temp.getDate() - 7);
+        }else if (izabranOpseg == 2){
+          temp.setMonth(temp.getMonth() - 1);
+        }
+
+        build = build + temp.toISOString().replace('T', '%20').replace('T', '%20').substring(0, today.toISOString().indexOf('.') + 2) + "&end=" + today.toISOString().replace('T', '%20').substring(0, today.toISOString().indexOf('.') + 2);
+        console.log(build);
+        fetch(build).then(x => x.json()).then(json => setData1(json.feeds));
+      }
+    }
+
+  }, [izabranOpseg, izabranaVelicina]);
+
+  useEffect(() => {
+    console.log(data1);
+  }, [data1]);
+
   return (
     <SafeAreaView style={{flex:1}}>
       <LinearGradient style={{flex:1}} start={{x: 0, y: 0.5}} end={{x: 0.3, y: 1.0}} colors={['rgba(2, 48, 71 ,0.9)', 'rgba(251, 133, 0, 0.9)']}>
@@ -63,12 +97,12 @@ function HistoryScreen({navigation}): React.JSX.Element {
         <View style={styles.inputView}>
           <View style={styles.selectView}><SelectDropdown renderDropdownIcon={() => {return icon}} defaultButtonText='Izaberite vremenski opseg: ' dropdownStyle={styles.dropdownStyle}
           buttonTextStyle={styles.labela} rowStyle={styles.rowStyle} rowTextStyle={styles.labela} data={range} selectedRowStyle={styles.selectedOption} buttonStyle={styles.inputStyle}
-          onSelect={(selectedItem, index) => {console.log(selectedItem, index)}} buttonTextAfterSelection={(selectedItem, index) => { return selectedItem }}
+          onSelect={(selectedItem, index) => {setIzabranOpseg(index)}} buttonTextAfterSelection={(selectedItem, index) => { return selectedItem }}
           rowTextForSelection={(item, index) => {return item}}/></View>
 
           <View style={styles.selectView}><SelectDropdown renderDropdownIcon={() => {return icon}} defaultButtonText='Izaberite veličinu za prikaz: ' dropdownStyle={styles.dropdownStyle} buttonTextStyle={styles.labela}
           rowStyle={styles.rowStyle} rowTextStyle={styles.labela} data={opcije} selectedRowStyle={styles.selectedOption}
-          buttonStyle={styles.inputStyle} onSelect={(selectedItem, index) => {console.log(selectedItem, index)}}
+          buttonStyle={styles.inputStyle} onSelect={(selectedItem, index) => {setIzabranaVelicina(index + 1)}}
             buttonTextAfterSelection={(selectedItem, index) => { return selectedItem }}
             rowTextForSelection={(item, index) => {return item}}/></View>
         </View>

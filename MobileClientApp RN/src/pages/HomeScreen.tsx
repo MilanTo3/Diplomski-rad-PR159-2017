@@ -5,7 +5,6 @@
  *
  * @format
  */
-
 import {
     ScrollView,
     StyleSheet,
@@ -18,18 +17,18 @@ import {
     Animated,
     Button
   } from 'react-native';
-  
-  import React, { useEffect, useState, useRef } from 'react';
-  import {SafeAreaView} from 'react-native-safe-area-context';
-  import { Divider } from '@rneui/themed';
-  import LinearGradient from 'react-native-linear-gradient';
-  import Icon from 'react-native-vector-icons/Entypo';
-  import Iconk from 'react-native-vector-icons/FontAwesome6';
-  import Iconm from 'react-native-vector-icons/MaterialCommunityIcons';
-  import Collapsible from 'react-native-collapsible';
-  
-  import { Table, TableWrapper, Row, Rows } from 'react-native-table-component';
-  import mqtt from 'precompiled-mqtt';
+import React, { useEffect, useState, useRef } from 'react';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import { Divider } from '@rneui/themed';
+import LinearGradient from 'react-native-linear-gradient';
+import Icon from 'react-native-vector-icons/Entypo';
+import Iconk from 'react-native-vector-icons/FontAwesome6';
+import Iconm from 'react-native-vector-icons/MaterialCommunityIcons';
+import Collapsible from 'react-native-collapsible';
+import { withNavigationFocus } from 'react-navigation';
+
+import { Table, TableWrapper, Row, Rows } from 'react-native-table-component';
+import mqtt from 'precompiled-mqtt';
   
   const toFahrenheit = function (celsius){
     let fahren = (9/5 * celsius) + 32;
@@ -78,16 +77,16 @@ function HomeScreen({navigation}): React.JSX.Element {
   
   useEffect(() => {
   
-    const interval = setInterval(function() {
-      fetch('https://api.thingspeak.com/channels/2429193/feeds.json?api_key=ICM2FPX89P99HRT1&results=1&timezone=Europe/Belgrade').then(x => x.json()).then(json => setttData({temperature: Number(json.feeds[0].field1), airH: json.feeds[0].field2, airQ: json.feeds[0].field4, soilH: json.feeds[0].field3, uvIndex: json.feeds[0].field5, createdAt: json.feeds[0].created_at}));
-      console.log('here3');
-      fadeAnim.resetAnimation();
-      fadeIn();
-  
-  }, 15000);
-  
-  
-    return () => clearInterval(interval);
+    if(navigation.isFocused()){
+      const interval = setInterval(function() {
+        fetch('https://api.thingspeak.com/channels/2429193/feeds.json?api_key=ICM2FPX89P99HRT1&results=1&timezone=Europe/Belgrade').then(x => x.json()).then(json => setttData({temperature: Number(json.feeds[0].field1), airH: json.feeds[0].field2, airQ: json.feeds[0].field4, soilH: json.feeds[0].field3, uvIndex: json.feeds[0].field5, createdAt: json.feeds[0].created_at}));
+        fadeAnim.resetAnimation();
+        fadeIn();
+    
+      }, 15000);
+    
+      return () => clearInterval(interval);
+    }
   });
   
     return (
