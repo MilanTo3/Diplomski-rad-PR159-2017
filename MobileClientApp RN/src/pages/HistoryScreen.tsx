@@ -24,20 +24,31 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {NavigationContainer} from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LinearGradient from 'react-native-linear-gradient';
-import { LineChart } from 'react-native-gifted-charts';
 import { useEffect, useState } from 'react';
 import { color } from 'react-native-reanimated';
 import SelectDropdown from 'react-native-select-dropdown';
 import { Divider } from '@rneui/themed';
 import Icon from 'react-native-vector-icons/Entypo';
+import {LineChart} from 'react-native-chart-kit';
 
 const windowWidth = Dimensions.get('window').width - 94;
 const icon = <Icon style={{margin: 11, color: 'rgba(2, 48, 71 ,1)'}} name="chevron-down" size={20} color="#8ecae6" />;
+const chartConfig = {
+  backgroundGradientFrom: "#1E2923",
+  backgroundGradientFromOpacity: 0,
+  backgroundGradientTo: "#08130D",
+  backgroundGradientToOpacity: 0.5,
+  color: (opacity = 1) => `rgba(26, 255, 146, ${opacity})`,
+  strokeWidth: 2,
+  barPercentage: 0.5,
+  useShadowColorFromDataset: false
+};
 
 function HistoryScreen({navigation}): React.JSX.Element {
 
-  const data = [ {value:50}, {value:80}, {value:90}, {value:70} ];
+  const data = [ 50, 80, 90, 70 ];
   const [data1, setData1] = useState({});
+  const [line1, setLine1] = useState(data);
   const [data2, setData2] = useState({});
   const [izabranOpseg, setIzabranOpseg] = useState(-1);
   const [izabranaVelicina, setIzabranaVelicina] = useState(-1);
@@ -76,7 +87,14 @@ function HistoryScreen({navigation}): React.JSX.Element {
   }, [izabranOpseg, izabranaVelicina]);
 
   useEffect(() => {
-    console.log(data1);
+    if(data1 && JSON.stringify(data1) !== '[]' && JSON.stringify(data1) !== '{}'){
+      let values = data1.map(a => a['field' + izabranaVelicina.toString()]);
+      let list = [];
+      values.forEach((x) => list.push(Number(x)));
+      let slicedArray = list.slice(0, 48);
+
+      setLine1(slicedArray);
+    }
   }, [data1]);
 
   return (
@@ -88,10 +106,43 @@ function HistoryScreen({navigation}): React.JSX.Element {
 
         <Text style={styles.title}>Histogram Podataka:</Text>
         <View style={styles.graphView}>
-          <LineChart data = {data} yAxisTextStyle={{color: '#fb8500'}} 
-                     width={windowWidth} startFillColor1='rgba(2, 48, 71 ,0.9)' color1='#fb8500'
-                     backgroundColor={'#023047'} dataPointsColor1={'#8ecae6'} isAnimated={true}
-                     animateOnDataChange={true} onDataChangeAnimationDuration={1500} dataPointsShape1=''/>
+
+        <LineChart
+    data={{
+      labels: [],
+      datasets: [
+        {
+          data: line1
+        }
+      ]
+    }}
+    width={Dimensions.get("window").width - 20} // from react-native
+    height={Dimensions.get('window').height/2.9}
+    yAxisInterval={1} // optional, defaults to 1
+    chartConfig={{
+      backgroundColor: "#023047",
+      backgroundGradientFrom: "#023047",
+      backgroundGradientTo: "#8ecae6",
+      decimalPlaces: 2, // optional, defaults to 2dp
+      color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+      labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+      style: {
+        borderRadius: 16
+      },
+      propsForDots: {
+        r: "2",
+        strokeWidth: "2",
+        stroke: "#fb8500"
+      }
+    }}
+    bezier
+    style={{
+      marginVertical: 8,
+      borderRadius: 16
+    }}
+  />
+
+          
         </View>
         <Divider width={3} color={'#8ecae6'} />
         <View style={styles.inputView}>
