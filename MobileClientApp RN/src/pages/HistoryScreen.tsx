@@ -33,16 +33,6 @@ import {LineChart} from 'react-native-chart-kit';
 
 const windowWidth = Dimensions.get('window').width - 94;
 const icon = <Icon style={{margin: 11, color: 'rgba(2, 48, 71 ,1)'}} name="chevron-down" size={20} color="#8ecae6" />;
-const chartConfig = {
-  backgroundGradientFrom: "#1E2923",
-  backgroundGradientFromOpacity: 0,
-  backgroundGradientTo: "#08130D",
-  backgroundGradientToOpacity: 0.5,
-  color: (opacity = 1) => `rgba(26, 255, 146, ${opacity})`,
-  strokeWidth: 2,
-  barPercentage: 0.5,
-  useShadowColorFromDataset: false
-};
 
 function HistoryScreen({navigation}): React.JSX.Element {
 
@@ -52,6 +42,7 @@ function HistoryScreen({navigation}): React.JSX.Element {
   const [data2, setData2] = useState({});
   const [izabranOpseg, setIzabranOpseg] = useState(-1);
   const [izabranaVelicina, setIzabranaVelicina] = useState(-1);
+  const [widthMultiplier, setWidthMultiplier] = useState(1);
 
   const opcije = ["Temperatura", "Vlažnost vazduha", "Vlažnost zemljišta", "Kvalitet vazduha", "UV indeks"];
   const range = ["Danas", "Ove nedelje", "Ovog meseca"];
@@ -71,11 +62,15 @@ function HistoryScreen({navigation}): React.JSX.Element {
         temp.setHours(1);
         temp.setMinutes(0);
         temp.setSeconds(1);
+        setWidthMultiplier(1);
 
         if(izabranOpseg == 1){
           temp.setDate(temp.getDate() - 7);
+          setWidthMultiplier(5);
+
         }else if (izabranOpseg == 2){
           temp.setMonth(temp.getMonth() - 1);
+          setWidthMultiplier(10);
         }
 
         build = build + temp.toISOString().replace('T', '%20').replace('T', '%20').substring(0, today.toISOString().indexOf('.') + 2) + "&end=" + today.toISOString().replace('T', '%20').substring(0, today.toISOString().indexOf('.') + 2);
@@ -93,7 +88,7 @@ function HistoryScreen({navigation}): React.JSX.Element {
       values.forEach((x) => list.push(Number(x)));
       let slicedArray = list.slice(0, 48);
 
-      setLine1(slicedArray);
+      setLine1(list);
     }
   }, [data1]);
 
@@ -105,45 +100,44 @@ function HistoryScreen({navigation}): React.JSX.Element {
         </TouchableOpacity>
 
         <Text style={styles.title}>Histogram Podataka:</Text>
-        <View style={styles.graphView}>
+        <ScrollView horizontal={true} style={styles.graphView}>
 
         <LineChart
-    data={{
-      labels: [],
-      datasets: [
-        {
-          data: line1
-        }
-      ]
-    }}
-    width={Dimensions.get("window").width - 20} // from react-native
-    height={Dimensions.get('window').height/2.9}
-    yAxisInterval={1} // optional, defaults to 1
-    chartConfig={{
-      backgroundColor: "#023047",
-      backgroundGradientFrom: "#023047",
-      backgroundGradientTo: "#8ecae6",
-      decimalPlaces: 2, // optional, defaults to 2dp
-      color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-      labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-      style: {
-        borderRadius: 16
-      },
-      propsForDots: {
-        r: "2",
-        strokeWidth: "2",
-        stroke: "#fb8500"
-      }
-    }}
-    bezier
-    style={{
-      marginVertical: 8,
-      borderRadius: 16
-    }}
-  />
-
+          data={{
+            labels: [],
+            datasets: [
+              {
+                data: line1
+              },
+              
+            ]
+          }}
+          width={Dimensions.get("window").width * widthMultiplier - 20} // from react-native
+          height={Dimensions.get('window').height/2.64}
+          yAxisInterval={1} // optional, defaults to 1
+          chartConfig={{
+            backgroundColor: "#023047",
+            backgroundGradientFrom: "#023047",
+            backgroundGradientTo: "#023047",
+            decimalPlaces: 2, // optional, defaults to 2dp
+            color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+            labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+            style: {
+              borderRadius: 16,
+            },
+            propsForDots: {
+              r: "2",
+              strokeWidth: "2",
+              stroke: "#fb8500"
+            }
+          }}
+          bezier
+          style={{
+            marginVertical: 8,
+            borderRadius: 16,
+          }}/>
           
-        </View>
+        </ScrollView>
         <Divider width={3} color={'#8ecae6'} />
         <View style={styles.inputView}>
           <View style={styles.selectView}><SelectDropdown renderDropdownIcon={() => {return icon}} defaultButtonText='Izaberite vremenski opseg: ' dropdownStyle={styles.dropdownStyle}
@@ -178,7 +172,9 @@ const styles = StyleSheet.create({
   },
   graphView:{
     margin: 10,
-    marginTop: 24,
+    marginTop: 20,
+    padding: 0,
+    maxHeight: Dimensions.get('window').height/2.34,
   },
   title:{
     fontSize: 20,
@@ -211,11 +207,10 @@ const styles = StyleSheet.create({
     borderRadius: 20, borderBlockColor: 'black', borderWidth: 1,
   },
   rowStyle:{backgroundColor: '#8ecae6', borderBlockColor: '#023047'},
-  inputStyle:{width: windowWidth, borderRadius: 14, backgroundColor: '#fb8500', borderColor: '#8ecae6',
-  borderWidth: 2,},
+  inputStyle:{width: windowWidth, borderRadius: 14, backgroundColor: '#fb8500', borderColor: '#8ecae6',borderWidth: 2,},
   selectView:{
     marginTop:22
-  }
+  },
 
   
 });
