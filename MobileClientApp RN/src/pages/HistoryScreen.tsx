@@ -29,16 +29,24 @@ import { color } from 'react-native-reanimated';
 import SelectDropdown from 'react-native-select-dropdown';
 import { Divider } from '@rneui/themed';
 import Icon from 'react-native-vector-icons/Entypo';
-import {LineChart} from 'react-native-chart-kit';
+import {LineChart, BarChart} from 'react-native-chart-kit';
 
 const windowWidth = Dimensions.get('window').width - 94;
 const icon = <Icon style={{margin: 11, color: 'rgba(2, 48, 71 ,1)'}} name="chevron-down" size={20} color="#8ecae6" />;
+function groupBy(arr, property) {
+  return arr.reduce(function (memo, x) {
+      if (!memo[x[property]]) { memo[x[property]] = []; }
+      memo[x[property]].push(x);
+      return memo;
+  }, {});
+};
 
 function HistoryScreen({navigation}): React.JSX.Element {
 
   const data = [ 50, 80, 90, 70 ];
   const [data1, setData1] = useState({});
   const [line1, setLine1] = useState(data);
+  const [line1Headers, setLine1Headers] = useState([]);
   const [data2, setData2] = useState({});
   const [izabranOpseg, setIzabranOpseg] = useState(-1);
   const [izabranaVelicina, setIzabranaVelicina] = useState(-1);
@@ -62,15 +70,15 @@ function HistoryScreen({navigation}): React.JSX.Element {
         temp.setHours(1);
         temp.setMinutes(0);
         temp.setSeconds(1);
-        setWidthMultiplier(1);
+        //setWidthMultiplier(1);
 
         if(izabranOpseg == 1){
           temp.setDate(temp.getDate() - 7);
-          setWidthMultiplier(5);
+          //setWidthMultiplier(5);
 
         }else if (izabranOpseg == 2){
           temp.setMonth(temp.getMonth() - 1);
-          setWidthMultiplier(10);
+          //setWidthMultiplier(6);
         }
 
         build = build + temp.toISOString().replace('T', '%20').replace('T', '%20').substring(0, today.toISOString().indexOf('.') + 2) + "&end=" + today.toISOString().replace('T', '%20').substring(0, today.toISOString().indexOf('.') + 2);
@@ -83,12 +91,38 @@ function HistoryScreen({navigation}): React.JSX.Element {
 
   useEffect(() => {
     if(data1 && JSON.stringify(data1) !== '[]' && JSON.stringify(data1) !== '{}'){
-      let values = data1.map(a => a['field' + izabranaVelicina.toString()]);
-      let list = [];
-      values.forEach((x) => list.push(Number(x)));
-      let slicedArray = list.slice(0, 48);
+      var propsToKeep = ["field" + izabranaVelicina.toString(), "created_at"];
 
-      setLine1(list);
+      var result = data1.map(item => {
+        const obj = {};
+        for (const prop of propsToKeep) {
+          obj[prop] = item[prop];
+          if(prop === 'created_at'){
+            obj['created_at'] = obj['created_at'].substring(5, 13);
+          }
+        }
+        return obj;
+      });
+
+      result = groupBy(result, 'created_at');
+      result = Object.values(result);
+      
+      let finalstruct = [];
+      let field = 'field' + izabranaVelicina.toString();
+      for(let i = 0; i < result.length; i++){
+        let values = result[i];
+        let sum = 0;
+        for(let j = 0; j < values.length; j++){
+          sum = sum + Number(values[j][field]);
+          
+        }
+        finalstruct.push({avg: (sum / values.length).toFixed(1), timestamp: result[i][0]['created_at']});
+        
+      }
+
+      setLine1(finalstruct.map(x => x.avg));
+      setLine1Headers(finalstruct.map(x => x.timestamp.replace('T', ' ') + 'h'));
+      
     }
   }, [data1]);
 
@@ -102,9 +136,9 @@ function HistoryScreen({navigation}): React.JSX.Element {
         <Text style={styles.title}>Histogram Podataka:</Text>
         <ScrollView horizontal={true} style={styles.graphView}>
 
-        <LineChart
+        <BarChart
           data={{
-            labels: [],
+            labels: line1Headers,
             datasets: [
               {
                 data: line1
@@ -120,15 +154,18 @@ function HistoryScreen({navigation}): React.JSX.Element {
             backgroundGradientFrom: "#023047",
             backgroundGradientTo: "#023047",
             decimalPlaces: 2, // optional, defaults to 2dp
+            barPercentage: 0.2,
             color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
             labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
             style: {
               borderRadius: 16,
+              
             },
             propsForDots: {
-              r: "2",
-              strokeWidth: "2",
-              stroke: "#fb8500"
+              r: "1",
+              strokeWidth: "1",
+              stroke: "#fb8500",
+              
             }
           }}
           bezier
