@@ -9,7 +9,7 @@ spi = spidev.SpiDev(0, 0)
 spi.max_speed_hz = 1200000
 
 class MCP3002Manager:
-    def get_adc(self, channel, sensor):
+    def get_adc(self, channel):
 
         # Make sure ADC channel is 0 or 1
         if channel != 0:
@@ -36,8 +36,5 @@ class MCP3002Manager:
 
         # Calculate voltage form ADC value
         # considering the soil moisture sensor is working at 5V
-        value = adc
-        if(sensor == 'airq'):
-            value = (5 * adc)
 
-        return value
+        return adc

@@ -35,8 +35,7 @@ Record = { "vlaznost_vazduha": 0,
            "temperatura": 0,
            "kvalitet_vazduha": 0,
            "vlaznost_zemljista": 0,
-           "uv_zracenje": 0,
-           "jacina_signala": 0 }
+           "uv_zracenje": 0 }
 
 onceperday_flag = False
 
@@ -51,10 +50,14 @@ def loop():
     #send_record = getRecords()
     #writeRecords(send_record)
     #sendRecords(send_record)
-    l = mcpManager.get_adc(1, 'soilm')
+    l = mcpManager.get_adc(1)
+    k = mcpManager.get_adc(0)
     value = valmap(l, wetlimit, drylimit, 100, 0)
     print(l)
     print(value)
+    print('Kvalitet vazduha: ' + str(k))
+    Record["kvalitet_vazduha"] = k
+    Record["vlaznost_zemljista"] = l
     time.sleep(15)
 
 def getRecords():
