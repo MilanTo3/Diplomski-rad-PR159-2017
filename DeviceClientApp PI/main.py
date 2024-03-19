@@ -2,6 +2,8 @@ import time
 import json, threading, os, serial
 from configparser import ConfigParser
 from pathlib import Path
+import RPi.GPIO as GPIO
+from mcp3002Manager import MCP3002Manager
 
 #ser = serial.Serial('/dev/ttyS0', baudrate=115200, timeout=1) # check this!
 
@@ -25,6 +27,9 @@ sub = "channels/"+ channelID +"/subscribe/fields/field#" # subscribe to image re
 
 # ------------------ Setup sim7600Manager.
 # ------------------
+mcpManager = MCP3002Manager()
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(17, GPIO.IN)
 
 Record = { "vlaznost_vazduha": 0, 
            "temperatura": 0,
@@ -37,7 +42,7 @@ onceperday_flag = False
 
 # ----------- Kalibracija senzora vlaznosti zemljista
 drylimit = 590
-wetlimit = 230
+wetlimit = 205
 # 10 seconds calibration
 
 def loop():
@@ -46,6 +51,10 @@ def loop():
     #send_record = getRecords()
     #writeRecords(send_record)
     #sendRecords(send_record)
+    l = mcpManager.get_adc(1, 'soilm')
+    value = valmap(l, wetlimit, drylimit, 100, 0)
+    print(l)
+    print(value)
     time.sleep(15)
 
 def getRecords():
