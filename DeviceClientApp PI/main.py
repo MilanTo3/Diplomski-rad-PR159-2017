@@ -5,6 +5,8 @@ from pathlib import Path
 import RPi.GPIO as GPIO
 from mcp3002Manager import MCP3002Manager
 from camController import CameraController
+from imageManager import ImageManager
+from PIL import Image
 import adafruit_dht
 
 #ser = serial.Serial('/dev/ttyS0', baudrate=115200, timeout=1) # check this!
@@ -30,8 +32,12 @@ sub = "channels/"+ channelID +"/subscribe/fields/field#" # subscribe to image re
 # ------------------ Setup sim7600Manager.
 # ------------------
 mcpManager = MCP3002Manager()
-camController = CameraController()
-camController.takePicture()
+#imageManager = ImageManager()
+#camController = CameraController()
+#camController.takePicture()
+#imageManager.JPEGSaveWithTargetSize(Image.open(path / 'capture.jpg'), 'compressedcapture.jpg', 105000)
+#imageManager.uploadImage()
+
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(17, GPIO.IN)
 dht22 = adafruit_dht.DHT22(board.D4, use_pulseio=False)
