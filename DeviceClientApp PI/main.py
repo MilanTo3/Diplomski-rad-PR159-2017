@@ -1,9 +1,10 @@
 import time
-import json, threading, os, serial
+import json, threading, os, serial, board
 from configparser import ConfigParser
 from pathlib import Path
 import RPi.GPIO as GPIO
 from mcp3002Manager import MCP3002Manager
+import adafruit_dht
 
 #ser = serial.Serial('/dev/ttyS0', baudrate=115200, timeout=1) # check this!
 
@@ -30,6 +31,7 @@ sub = "channels/"+ channelID +"/subscribe/fields/field#" # subscribe to image re
 mcpManager = MCP3002Manager()
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(17, GPIO.IN)
+dht22 = adafruit_dht.DHT22(board.D4, use_pulseio=False)
 
 Record = { "vlaznost_vazduha": 0, 
            "temperatura": 0,
@@ -41,28 +43,40 @@ onceperday_flag = False
 
 # ----------- Kalibracija senzora vlaznosti zemljista
 drylimit = 590
-wetlimit = 205
+wetlimit = 200
 # 10 seconds calibration
 
 def loop():
 
   while True:
-    #send_record = getRecords()
-    #writeRecords(send_record)
-    #sendRecords(send_record)
-    l = mcpManager.get_adc(1)
-    k = mcpManager.get_adc(0)
-    value = valmap(l, wetlimit, drylimit, 100, 0)
-    print(l)
-    print(value)
-    print('Kvalitet vazduha: ' + str(k))
-    Record["kvalitet_vazduha"] = k
-    Record["vlaznost_zemljista"] = l
+    getRecords()
+    writeRecords()
+    #sendRecords()
+
     time.sleep(15)
+  
+def getTempandHumidity():
+   signal = False
+   while not(signal):
+      try:
+         l = dht22.temperature
+         k = dht22.humidity
+         if(l == None or k == None):
+          continue
+         signal = True
+         return [l, k]
+      except:
+         signal = False
 
 def getRecords():
 
-  print('Todo')
+  Record["kvalitet_vazduha"] = mcpManager.get_adc(0)
+  l = mcpManager.get_adc(1)
+  soilh:float = valmap(l, wetlimit, drylimit, 100, 0)
+  Record["vlaznost_zemljista"] = round(soilh, 1)
+  th = getTempandHumidity()
+  Record["temperatura"] = th[0]
+  Record["vlaznost_vazduha"] = th[1]
 
 def valmap(value, istart, istop, ostart, ostop):
   return ostart + (ostop - ostart) * ((value - istart) / (istop - istart))
@@ -70,13 +84,13 @@ def valmap(value, istart, istop, ostart, ostop):
 def mapfloat(value, istart, istop, ostart, ostop):
   return (value - istart) * (ostop - ostart) / (istop - istart) + ostart
 
-def writeRecords(send_record):
+def writeRecords():
 
-  print("\n Temperatura: " + str(send_record.temperatura) + "\t Vlaznost vazduha: " + str(send_record.vlaznost_vazduha)
-        + "\t Vlaznost zemljista: " + str(send_record.vlaznost_zemljista) + "\t Kvalitet vazduha: " + str(send_record.kvalitet_vazduha)
-        + "\t UV zracenje: " + str(send_record.uv_zracenje))
+  print("\n Temperatura: " + str(Record["temperatura"]) + "\t Vlaznost vazduha: " + str(Record["vlaznost_vazduha"])
+        + "\t Vlaznost zemljista: " + str(Record["vlaznost_zemljista"]) + "\t Kvalitet vazduha: " + str(Record["kvalitet_vazduha"])
+        + "\t UV zracenje: " + str(Record["uv_zracenje"]))
 
-def sendRecords(send_record):
+def sendRecords():
   print("to do")
   
 def getResponseData():
