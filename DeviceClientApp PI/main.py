@@ -4,10 +4,11 @@ from configparser import ConfigParser
 from pathlib import Path
 import RPi.GPIO as GPIO
 from mcp3002Manager import MCP3002Manager
-from camController import CameraController
+#from camController import CameraController
 from imageManager import ImageManager
 from PIL import Image
 import adafruit_dht
+import gpiozero
 
 #ser = serial.Serial('/dev/ttyS0', baudrate=115200, timeout=1) # check this!
 
@@ -37,12 +38,15 @@ mcpManager = MCP3002Manager()
 #camController.takePicture()
 #imageManager.JPEGSaveWithTargetSize(Image.open(path / 'capture.jpg'), 'compressedcapture.jpg', 105000)
 #imageManager.uploadImage()
+def buttonCallback(self):
+  print('callback: ' + str(GPIO.input(17)))
 
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(17, GPIO.IN)
-dht22 = adafruit_dht.DHT22(board.D4, use_pulseio=False)
+GPIO.setup(17, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.add_event_detect(17, GPIO.RISING, buttonCallback)
+dht22 = adafruit_dht.DHT22(board.D22, use_pulseio=False)
 
-Record = { "vlaznost_vazduha": 0, 
+Record = { "vlaznost_vazduha": 0,
            "temperatura": 0,
            "kvalitet_vazduha": 0,
            "vlaznost_zemljista": 0,
@@ -79,6 +83,10 @@ def getTempandHumidity():
 
 def getRecords():
 
+  va1 =gpiozero.MCP3208(channel=0)
+  va2 = gpiozero.MCP3208(channel=1)
+  print('Raw vlu: ' + str(va2.raw_value))
+  print(va1.raw_value, valmap(va2.raw_value, wetlimit, drylimit, 100, 0))
   Record["kvalitet_vazduha"] = mcpManager.get_adc(0)
   l = mcpManager.get_adc(1)
   soilh:float = valmap(l, wetlimit, drylimit, 100, 0)
