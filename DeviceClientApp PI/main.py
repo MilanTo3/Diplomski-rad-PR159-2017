@@ -83,17 +83,19 @@ def getTempandHumidity():
 
 def getRecords():
 
-  va1 =gpiozero.MCP3208(channel=0)
+  va1 = gpiozero.MCP3208(channel=0)
   va2 = gpiozero.MCP3208(channel=1)
   print('Raw vlu: ' + str(va2.raw_value))
   print(va1.raw_value, valmap(va2.raw_value, wetlimit, drylimit, 100, 0))
   Record["kvalitet_vazduha"] = mcpManager.get_adc(0)
   l = mcpManager.get_adc(1)
-  soilh:float = valmap(l, wetlimit, drylimit, 100, 0)
-  Record["vlaznost_zemljista"] = round(soilh, 1)
+  soilh = round(valmap(l, wetlimit, drylimit, 100, 0), 1)
+  Record["vlaznost_zemljista"] = soilh
   th = getTempandHumidity()
   Record["temperatura"] = th[0]
   Record["vlaznost_vazduha"] = th[1]
+  #outputVoltage = 3.3 / refLevel * uvLevel
+  #uvIntensity = mapfloat(outputVoltage, 0.99, 2.8, 0.0, 15.0)
 
 def valmap(value, istart, istop, ostart, ostop):
   return ostart + (ostop - ostart) * ((value - istart) / (istop - istart))
