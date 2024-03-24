@@ -51,8 +51,10 @@ function HistoryScreen({navigation}): React.JSX.Element {
   const [izabranOpseg, setIzabranOpseg] = useState(-1);
   const [izabranaVelicina, setIzabranaVelicina] = useState(-1);
   const [widthMultiplier, setWidthMultiplier] = useState(1);
+  const [labelUnit, setLabelUnit] = useState("")
 
   const opcije = ["Temperatura", "Vlažnost vazduha", "Vlažnost zemljišta", "Kvalitet vazduha", "UV indeks"];
+  const labelUnits = ["°C ", "% ", "% ", "ppm ", ""]
   const range = ["Danas", "Ove nedelje", "Ovog meseca"];
 
   useEffect(() => {
@@ -70,15 +72,15 @@ function HistoryScreen({navigation}): React.JSX.Element {
         temp.setHours(1);
         temp.setMinutes(0);
         temp.setSeconds(1);
-        //setWidthMultiplier(1);
+        setWidthMultiplier(1);
 
         if(izabranOpseg == 1){
           temp.setDate(temp.getDate() - 7);
-          //setWidthMultiplier(5);
+          setWidthMultiplier(3);
 
         }else if (izabranOpseg == 2){
           temp.setMonth(temp.getMonth() - 1);
-          //setWidthMultiplier(6);
+          setWidthMultiplier(5);
         }
 
         build = build + temp.toISOString().replace('T', '%20').replace('T', '%20').substring(0, today.toISOString().indexOf('.') + 2) + "&end=" + today.toISOString().replace('T', '%20').substring(0, today.toISOString().indexOf('.') + 2);
@@ -116,10 +118,13 @@ function HistoryScreen({navigation}): React.JSX.Element {
           sum = sum + Number(values[j][field]);
           
         }
-        finalstruct.push({avg: (sum / values.length).toFixed(1), timestamp: result[i][0]['created_at']});
-        
+        if(isNaN(sum / values.length) === false){
+          finalstruct.push({avg: (sum / values.length).toFixed(1), timestamp: result[i][0]['created_at']});
+        }
       }
 
+      console.log(finalstruct.length);
+      console.log(finalstruct.map(x => x.avg));
       setLine1(finalstruct.map(x => x.avg));
       setLine1Headers(finalstruct.map(x => x.timestamp.replace('T', ' ') + 'h'));
       
@@ -136,19 +141,19 @@ function HistoryScreen({navigation}): React.JSX.Element {
         <Text style={styles.title}>Histogram Podataka:</Text>
         <ScrollView horizontal={true} style={styles.graphView}>
 
-        <BarChart
+        <LineChart
           data={{
             labels: line1Headers,
             datasets: [
               {
                 data: line1
               },
-              
             ]
           }}
           width={Dimensions.get("window").width * widthMultiplier - 20} // from react-native
           height={Dimensions.get('window').height/2.64}
           yAxisInterval={1} // optional, defaults to 1
+          yAxisLabel={labelUnit}
           chartConfig={{
             backgroundColor: "#023047",
             backgroundGradientFrom: "#023047",
@@ -166,7 +171,7 @@ function HistoryScreen({navigation}): React.JSX.Element {
               strokeWidth: "1",
               stroke: "#fb8500",
               
-            }
+            },
           }}
           bezier
           style={{
@@ -184,7 +189,7 @@ function HistoryScreen({navigation}): React.JSX.Element {
 
           <View style={styles.selectView}><SelectDropdown renderDropdownIcon={() => {return icon}} defaultButtonText='Izaberite veličinu za prikaz: ' dropdownStyle={styles.dropdownStyle} buttonTextStyle={styles.labela}
           rowStyle={styles.rowStyle} rowTextStyle={styles.labela} data={opcije} selectedRowStyle={styles.selectedOption}
-          buttonStyle={styles.inputStyle} onSelect={(selectedItem, index) => {setIzabranaVelicina(index + 1)}}
+          buttonStyle={styles.inputStyle} onSelect={(selectedItem, index) => {setIzabranaVelicina(index + 1); setLabelUnit(labelUnits[index])}}
             buttonTextAfterSelection={(selectedItem, index) => { return selectedItem }}
             rowTextForSelection={(item, index) => {return item}}/></View>
         </View>

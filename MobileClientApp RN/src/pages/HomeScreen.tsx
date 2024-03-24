@@ -32,7 +32,7 @@ import mqtt from 'precompiled-mqtt';
   
   const toFahrenheit = function (celsius){
     let fahren = (9/5 * celsius) + 32;
-    return fahren;
+    return fahren.toFixed(1);
   };
   
 function HomeScreen({navigation}): React.JSX.Element {
@@ -149,11 +149,13 @@ function HomeScreen({navigation}): React.JSX.Element {
                 <View style={styles.partWrapper}>
   
                   <LinearGradient start={{x: 0, y: 0}} end={{x: 0.3, y: 1.0}} colors={['rgba(255, 183, 3 ,1)', 'rgba(251, 133, 0, 1)']} style={styles.kartica}>
-                    <Text style={styles.title1}>Novi Sad,</Text>
-                    <View style={styles.iconStyle}>
-                      <Icon style={{margin: 11, color: 'rgba(2, 48, 71 ,1)'}} name="location" size={27} color="#8ecae6" />
-                    </View>
-                    <Text style={styles.title1}>Kupinovo</Text>
+                    <TouchableOpacity>
+                      <Text style={styles.title1}>Zatraži</Text>
+                      <View style={styles.iconStyle}>
+                        <Icon style={{margin: 11, color: 'rgba(2, 48, 71 ,1)'}} name="camera" size={27} color="#8ecae6" />
+                      </View>
+                      <Text style={styles.title1}>Sliku</Text>
+                    </TouchableOpacity>
                   </LinearGradient>
   
                   <LinearGradient start={{x: 0, y: 0}} end={{x: 0.3, y: 1.0}} colors={['rgba(255, 183, 3 ,1)', 'rgba(251, 133, 0, 1)']} style={styles.kartica}>
