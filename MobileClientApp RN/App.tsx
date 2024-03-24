@@ -24,6 +24,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from './src/pages/HomeScreen';
 import HistoryScreen from './src/pages/HistoryScreen';
+import RequestImageScreen from './src/pages/RequestImageScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -37,6 +38,7 @@ function App(): React.JSX.Element {
         <Stack.Navigator initialRouteName='home'>
           <Stack.Screen name='home' component={HomeScreen} options={{ headerShown: false }}></Stack.Screen>
           <Stack.Screen name='history' component={HistoryScreen} options={{ headerShown: false }}></Stack.Screen>
+          <Stack.Screen name='getimage' component={RequestImageScreen} options={{ headerShown: false }}></Stack.Screen>
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaView>

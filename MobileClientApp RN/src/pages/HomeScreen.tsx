@@ -149,8 +149,8 @@ function HomeScreen({navigation}): React.JSX.Element {
                 <View style={styles.partWrapper}>
   
                   <LinearGradient start={{x: 0, y: 0}} end={{x: 0.3, y: 1.0}} colors={['rgba(255, 183, 3 ,1)', 'rgba(251, 133, 0, 1)']} style={styles.kartica}>
-                    <TouchableOpacity>
-                      <Text style={styles.title1}>Zatraži</Text>
+                    <TouchableOpacity onPress={() => navigation.navigate('getimage')}>
+                      <Text style={styles.title1}>Zatražite</Text>
                       <View style={styles.iconStyle}>
                         <Icon style={{margin: 11, color: 'rgba(2, 48, 71 ,1)'}} name="camera" size={27} color="#8ecae6" />
                       </View>

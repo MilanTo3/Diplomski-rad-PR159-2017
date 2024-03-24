@@ -30,6 +30,7 @@ import SelectDropdown from 'react-native-select-dropdown';
 import { Divider } from '@rneui/themed';
 import Icon from 'react-native-vector-icons/Entypo';
 import {LineChart, BarChart} from 'react-native-chart-kit';
+import Iconm from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const windowWidth = Dimensions.get('window').width - 94;
 const icon = <Icon style={{margin: 11, color: 'rgba(2, 48, 71 ,1)'}} name="chevron-down" size={20} color="#8ecae6" />;
@@ -135,13 +136,13 @@ function HistoryScreen({navigation}): React.JSX.Element {
     <SafeAreaView style={{flex:1}}>
       <LinearGradient style={{flex:1}} start={{x: 0, y: 0.5}} end={{x: 0.3, y: 1.0}} colors={['rgba(2, 48, 71 ,0.9)', 'rgba(251, 133, 0, 0.9)']}>
         <TouchableOpacity onPress={() => navigation.navigate('home')} style={styles.buttonStyle}>
-          <Text style={styles.btnText}> ← </Text>
+          <Iconm style={{color: 'white'}} name="keyboard-backspace" size={24} color="white" />
         </TouchableOpacity>
 
         <Text style={styles.title}>Histogram Podataka:</Text>
         <ScrollView horizontal={true} style={styles.graphView}>
 
-        <LineChart
+        <BarChart
           data={{
             labels: line1Headers,
             datasets: [
@@ -159,7 +160,7 @@ function HistoryScreen({navigation}): React.JSX.Element {
             backgroundGradientFrom: "#023047",
             backgroundGradientTo: "#023047",
             decimalPlaces: 2, // optional, defaults to 2dp
-            barPercentage: 0.2,
+            barPercentage: 0.5,
             color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
             labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
             style: {
@@ -201,16 +202,13 @@ function HistoryScreen({navigation}): React.JSX.Element {
 
 const styles = StyleSheet.create({
   buttonStyle:{
-    margin: 7,
-    backgroundColor: '#841584',
+    backgroundColor: '#023047',
     width: 50,
-    borderRadius: 13,
-    padding: 7
-  },
-  btnText:{
-    color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'center'
+    maxHeight: 50,
+    justifyContent: 'center', //Centered vertically
+    alignItems: 'center', //Centered horizontally
+    flex:1,
+    borderRadius: 5,
   },
   graphView:{
     margin: 10,
