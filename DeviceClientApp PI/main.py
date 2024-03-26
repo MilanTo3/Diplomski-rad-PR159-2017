@@ -3,14 +3,12 @@ import json, threading, os, serial, board
 from configparser import ConfigParser
 from pathlib import Path
 import RPi.GPIO as GPIO
-from mcp3002Manager import MCP3002Manager
 #from camController import CameraController
 from imageManager import ImageManager
 from PIL import Image
 import adafruit_dht
-import gpiozero, busio
-import adafruit_ads1x15.ads1115 as ADS
-from adafruit_ads1x15.analog_in import AnalogIn
+import gpiozero
+from sensorManager import SensorManager
 
 #ser = serial.Serial('/dev/ttyS0', baudrate=115200, timeout=1) # check this!
 
@@ -32,6 +30,7 @@ port = 1883
 pub = "channels/"+ channelID +"/publish/fields/" # field1=100&field2=50
 sub = "channels/"+ channelID +"/subscribe/fields/field#" # subscribe to image request field
 
+sensorManager = SensorManager()
 # ------------------ Setup sim7600Manager.
 # ------------------
 #imageManager = ImageManager()
@@ -45,22 +44,12 @@ def buttonCallback(self):
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(17, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.add_event_detect(17, GPIO.RISING, buttonCallback)
-dht22 = adafruit_dht.DHT22(board.D22, use_pulseio=False)
-
-airqch = gpiozero.MCP3208(channel=0)
-soilmch = gpiozero.MCP3208(channel=1)
-uvch = gpiozero.MCP3208(channel=2)
 
 Record = { "vlaznost_vazduha": 0,
            "temperatura": 0,
            "kvalitet_vazduha": 0,
            "vlaznost_zemljista": 0,
            "uv_zracenje": 0 }
-
-# ----------- Kalibracija senzora vlaznosti zemljista
-drylimit = 780
-wetlimit = 280
-# 10 seconds calibration
 
 def loop():
 
@@ -70,38 +59,15 @@ def loop():
     #sendRecords()
 
     time.sleep(15)
-  
-def getTempandHumidity():
-   signal = False
-   while not(signal):
-      try:
-         l = dht22.temperature
-         k = dht22.humidity
-         if(l == None or k == None):
-          continue
-         signal = True
-         return [l, k]
-      except:
-         signal = False
 
 def getRecords():
 
-  Record["kvalitet_vazduha"] = airqch.raw_value >> 2
-  l = soilmch.raw_value >> 2
-  soilh = round(valmap(l, wetlimit, drylimit, 100, 0), 1)
-  Record["vlaznost_zemljista"] = soilh
-  th = getTempandHumidity()
+  Record["kvalitet_vazduha"] = sensorManager.readAirQuality()
+  Record["vlaznost_zemljista"] = sensorManager.readSoilMoisturePercentage()
+  th = sensorManager.readTempandHumidity()
   Record["temperatura"] = th[0]
   Record["vlaznost_vazduha"] = th[1]
-  voltage = uvch.voltage
-  uvIntensity = mapfloat(voltage, 0.99, 2.8, 0.0, 15.0)
-  Record["uv_zracenje"] = round(uvIntensity, 1)
-
-def valmap(value, istart, istop, ostart, ostop):
-  return ostart + (ostop - ostart) * ((value - istart) / (istop - istart))
-
-def mapfloat(value, istart, istop, ostart, ostop):
-  return (value - istart) * (ostop - ostart) / (istop - istart) + ostart
+  Record["uv_zracenje"] = sensorManager.readUVIndex()
 
 def writeRecords():
 
