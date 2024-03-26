@@ -8,7 +8,9 @@ from mcp3002Manager import MCP3002Manager
 from imageManager import ImageManager
 from PIL import Image
 import adafruit_dht
-import gpiozero
+import gpiozero, busio
+import adafruit_ads1x15.ads1115 as ADS
+from adafruit_ads1x15.analog_in import AnalogIn
 
 #ser = serial.Serial('/dev/ttyS0', baudrate=115200, timeout=1) # check this!
 
@@ -32,7 +34,6 @@ sub = "channels/"+ channelID +"/subscribe/fields/field#" # subscribe to image re
 
 # ------------------ Setup sim7600Manager.
 # ------------------
-mcpManager = MCP3002Manager()
 #imageManager = ImageManager()
 #camController = CameraController()
 #camController.takePicture()
@@ -46,17 +47,19 @@ GPIO.setup(17, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.add_event_detect(17, GPIO.RISING, buttonCallback)
 dht22 = adafruit_dht.DHT22(board.D22, use_pulseio=False)
 
+airqch = gpiozero.MCP3208(channel=0)
+soilmch = gpiozero.MCP3208(channel=1)
+uvch = gpiozero.MCP3208(channel=2)
+
 Record = { "vlaznost_vazduha": 0,
            "temperatura": 0,
            "kvalitet_vazduha": 0,
            "vlaznost_zemljista": 0,
            "uv_zracenje": 0 }
 
-onceperday_flag = False
-
 # ----------- Kalibracija senzora vlaznosti zemljista
-drylimit = 590
-wetlimit = 200
+drylimit = 780
+wetlimit = 280
 # 10 seconds calibration
 
 def loop():
@@ -83,19 +86,16 @@ def getTempandHumidity():
 
 def getRecords():
 
-  va1 = gpiozero.MCP3208(channel=0)
-  va2 = gpiozero.MCP3208(channel=1)
-  print('Raw vlu: ' + str(va2.raw_value))
-  print(va1.raw_value, valmap(va2.raw_value, wetlimit, drylimit, 100, 0))
-  Record["kvalitet_vazduha"] = mcpManager.get_adc(0)
-  l = mcpManager.get_adc(1)
+  Record["kvalitet_vazduha"] = airqch.raw_value >> 2
+  l = soilmch.raw_value >> 2
   soilh = round(valmap(l, wetlimit, drylimit, 100, 0), 1)
   Record["vlaznost_zemljista"] = soilh
   th = getTempandHumidity()
   Record["temperatura"] = th[0]
   Record["vlaznost_vazduha"] = th[1]
-  #outputVoltage = 3.3 / refLevel * uvLevel
-  #uvIntensity = mapfloat(outputVoltage, 0.99, 2.8, 0.0, 15.0)
+  voltage = uvch.voltage
+  uvIntensity = mapfloat(voltage, 0.99, 2.8, 0.0, 15.0)
+  Record["uv_zracenje"] = round(uvIntensity, 1)
 
 def valmap(value, istart, istop, ostart, ostop):
   return ostart + (ostop - ostart) * ((value - istart) / (istop - istart))
