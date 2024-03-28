@@ -48,7 +48,24 @@ function HomeScreen({navigation}): React.JSX.Element {
   const [airQModalVisible, setairQModalVisible] = useState(false);
   const [uvModalVisible, setUVModalVisible] = useState(false);
   const [ttData, setttData] = useState({ temperature: 0, airH: '0', airQ: '0', soilH: '0', uvIndex: '0', createdAt: '' });
-  
+  const [airQDef, setairQDef] = useState('');
+
+  const airQDefDet = () => {
+    if(Number(ttData.airQ) >= 0 && Number(ttData.airQ) <= 33){
+      setairQDef('Veoma dobar');
+    }else if(Number(ttData.airQ) >= 34 && Number(ttData.airQ) <= 66){
+      setairQDef('Dobar');
+    }else if(Number(ttData.airQ) >= 67 && Number(ttData.airQ) <= 99){
+      setairQDef('Prihvatljiv');
+    }else if(Number(ttData.airQ) >= 100 && Number(ttData.airQ) <= 149){
+      setairQDef('Loš');
+    }else if(Number(ttData.airQ) >= 150 && Number(ttData.airQ) <= 200){
+      setairQDef('Veoma Loš');
+    }else if(Number(ttData.airQ) >= 201){
+      setairQDef('Izuzetno Loš');
+    }
+  }
+
   const airstate = {
     tableHead: ['Indeks:', 'Kvalitet Vazduha:'],
     tableData: [
@@ -74,22 +91,26 @@ function HomeScreen({navigation}): React.JSX.Element {
       useNativeDriver: true,
       delay:100
     }).start();};
+
+  let intervalFetchFunc = function() {
+    fetch('https://api.thingspeak.com/channels/2429193/feeds.json?api_key=ICM2FPX89P99HRT1&results=1&timezone=Europe/Belgrade').then(x => x.json()).then(json => setttData({temperature: Number(json.feeds[0].field1), airH: json.feeds[0].field2, airQ: json.feeds[0].field4, soilH: json.feeds[0].field3, uvIndex: json.feeds[0].field5, createdAt: json.feeds[0].created_at}));
+    airQDefDet();
+    fadeAnim.resetAnimation();
+    fadeIn();
+    
+  }
   
   useEffect(() => {
   
     if(navigation.isFocused()){
+      console.log('running');
+      intervalFetchFunc();
 
-      const interval = setInterval(function() {
-        fetch('https://api.thingspeak.com/channels/2429193/feeds.json?api_key=ICM2FPX89P99HRT1&results=1&timezone=Europe/Belgrade').then(x => x.json()).then(json => setttData({temperature: Number(json.feeds[0].field1), airH: json.feeds[0].field2, airQ: json.feeds[0].field4, soilH: json.feeds[0].field3, uvIndex: json.feeds[0].field5, createdAt: json.feeds[0].created_at}));
-        
-        fadeAnim.resetAnimation();
-        fadeIn();
-    
-      }, 15000);
+      const interval = setInterval(intervalFetchFunc, 15000);
     
       return () => clearInterval(interval);
     }
-  });
+  }, []);
   
     return (
         <ScrollView contentInsetAdjustmentBehavior="automatic" style={{backgroundColor: 'black'}}>
@@ -295,7 +316,7 @@ function HomeScreen({navigation}): React.JSX.Element {
                             <Animated.View style={[{opacity: fadeAnim}]}>
                               <Text style={styles.labelaBigger}>{ttData.airQ} [ppm]</Text>
                             </Animated.View>
-                            <Text style={styles.labela}>[Prihvatljiv]</Text>
+                            <Text style={styles.labela}>[{airQDef}]</Text>
                           </View>
                         </View>
                         <Divider width={3} color={'#8ecae6'} />
