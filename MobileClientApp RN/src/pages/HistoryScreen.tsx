@@ -44,11 +44,11 @@ function groupBy(arr, property) {
 
 function HistoryScreen({navigation}): React.JSX.Element {
 
-  const data = [ 50, 80, 90, 70 ];
   const [data1, setData1] = useState({});
-  const [line1, setLine1] = useState(data);
+  const [line1, setLine1] = useState([0]);
   const [line1Headers, setLine1Headers] = useState([]);
   const [data2, setData2] = useState({});
+  const [line2Headers, setLine2Headers] = useState([]);
   const [izabranOpseg, setIzabranOpseg] = useState(-1);
   const [izabranaVelicina, setIzabranaVelicina] = useState(-1);
   const [widthMultiplier, setWidthMultiplier] = useState(1);
@@ -124,8 +124,6 @@ function HistoryScreen({navigation}): React.JSX.Element {
         }
       }
 
-      console.log(finalstruct.length);
-      console.log(finalstruct.map(x => x.avg));
       setLine1(finalstruct.map(x => x.avg));
       setLine1Headers(finalstruct.map(x => x.timestamp.replace('T', ' ') + 'h'));
       
