@@ -31,6 +31,7 @@ import { Divider } from '@rneui/themed';
 import Icon from 'react-native-vector-icons/Entypo';
 import {LineChart, BarChart} from 'react-native-chart-kit';
 import Iconm from 'react-native-vector-icons/MaterialCommunityIcons';
+import DatePicker from 'react-native-date-picker';
 
 const windowWidth = Dimensions.get('window').width - 94;
 const icon = <Icon style={{margin: 11, color: 'rgba(2, 48, 71 ,1)'}} name="chevron-down" size={20} color="#8ecae6" />;
@@ -52,11 +53,13 @@ function HistoryScreen({navigation}): React.JSX.Element {
   const [izabranOpseg, setIzabranOpseg] = useState(-1);
   const [izabranaVelicina, setIzabranaVelicina] = useState(-1);
   const [widthMultiplier, setWidthMultiplier] = useState(1);
-  const [labelUnit, setLabelUnit] = useState("")
+  const [labelUnit, setLabelUnit] = useState("");
+  const [pickedDate, setPickedDate] = useState(new Date());
+  const [open, setOpen] = useState(false);
 
   const opcije = ["Temperatura", "Vlažnost vazduha", "Vlažnost zemljišta", "Kvalitet vazduha", "UV indeks"];
   const labelUnits = ["°C ", "% ", "% ", "ppm ", ""]
-  const range = ["Danas", "Ove nedelje", "Ovog meseca"];
+  const range = ["Danas", "Ove nedelje", "Ovog meseca", "Izaberite datum"];
 
   useEffect(() => {
 
@@ -73,15 +76,18 @@ function HistoryScreen({navigation}): React.JSX.Element {
         temp.setHours(1);
         temp.setMinutes(0);
         temp.setSeconds(1);
-        setWidthMultiplier(1);
+        setWidthMultiplier(5);
 
-        if(izabranOpseg == 1){
+        if (izabranOpseg === 1){
           temp.setDate(temp.getDate() - 7);
-          setWidthMultiplier(3);
-
-        }else if (izabranOpseg == 2){
+        } else if (izabranOpseg === 2){
           temp.setMonth(temp.getMonth() - 1);
-          setWidthMultiplier(5);
+        } else if (izabranOpseg === 3){
+          temp.setFullYear(pickedDate.getFullYear(), pickedDate.getMonth(), pickedDate.getDate());
+          today.setFullYear(pickedDate.getFullYear(), pickedDate.getMonth(), pickedDate.getDate());
+          today.setHours(24);
+          today.setMinutes(59);
+          today.setSeconds(59);
         }
 
         build = build + temp.toISOString().replace('T', '%20').replace('T', '%20').substring(0, today.toISOString().indexOf('.') + 2) + "&end=" + today.toISOString().replace('T', '%20').substring(0, today.toISOString().indexOf('.') + 2);
@@ -90,7 +96,7 @@ function HistoryScreen({navigation}): React.JSX.Element {
       }
     }
 
-  }, [izabranOpseg, izabranaVelicina]);
+  }, [izabranOpseg, izabranaVelicina, pickedDate]);
 
   useEffect(() => {
     if(data1 && JSON.stringify(data1) !== '[]' && JSON.stringify(data1) !== '{}'){
@@ -158,7 +164,7 @@ function HistoryScreen({navigation}): React.JSX.Element {
             backgroundGradientFrom: "#023047",
             backgroundGradientTo: "#023047",
             decimalPlaces: 2, // optional, defaults to 2dp
-            barPercentage: 0.5,
+            barPercentage: 0.2,
             color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
             labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
             style: {
@@ -180,10 +186,15 @@ function HistoryScreen({navigation}): React.JSX.Element {
           
         </ScrollView>
         <Divider width={3} color={'#8ecae6'} />
+          <DatePicker modal open={open} date={pickedDate} mode='date' maximumDate={new Date()} buttonColor='#fb8500' dividerColor='#8ecae6' title="Odaberite datum"
+          onConfirm={(date) => {
+            setOpen(false);
+            setPickedDate(date) }}
+          onCancel={() => {setOpen(false)}}/>
         <View style={styles.inputView}>
           <View style={styles.selectView}><SelectDropdown renderDropdownIcon={() => {return icon}} defaultButtonText='Izaberite vremenski opseg: ' dropdownStyle={styles.dropdownStyle}
           buttonTextStyle={styles.labela} rowStyle={styles.rowStyle} rowTextStyle={styles.labela} data={range} selectedRowStyle={styles.selectedOption} buttonStyle={styles.inputStyle}
-          onSelect={(selectedItem, index) => {setIzabranOpseg(index)}} buttonTextAfterSelection={(selectedItem, index) => { return selectedItem }}
+          onSelect={(selectedItem, index) => {setIzabranOpseg(index); if (index === 3){setOpen(true);} }} buttonTextAfterSelection={(selectedItem, index) => { return selectedItem }}
           rowTextForSelection={(item, index) => {return item}}/></View>
 
           <View style={styles.selectView}><SelectDropdown renderDropdownIcon={() => {return icon}} defaultButtonText='Izaberite veličinu za prikaz: ' dropdownStyle={styles.dropdownStyle} buttonTextStyle={styles.labela}
