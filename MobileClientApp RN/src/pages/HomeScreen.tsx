@@ -113,7 +113,7 @@ function HomeScreen({navigation}): React.JSX.Element {
   }, []);
   
     return (
-        <ScrollView contentInsetAdjustmentBehavior="automatic" style={{backgroundColor: 'black'}}>
+        <ScrollView contentInsetAdjustmentBehavior="automatic">
         <Modal
           animationType="slide"
           transparent={true}
