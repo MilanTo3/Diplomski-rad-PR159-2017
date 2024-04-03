@@ -213,7 +213,18 @@ function HistoryScreen({navigation}): React.JSX.Element {
           yAxisInterval={1} // optional, defaults to 1
           yAxisLabel={labelUnit + correlationUnit + " "}
           yLabelsOffset={20}
-          
+          renderDotContent={({x, y, indexData}) => (
+            <View
+              style={{
+                position: 'absolute',
+                top: y - 25,
+                left: x - 8,
+              }}>
+              <Text style={[styles.labela, {fontSize: 11}]}>
+                {indexData}
+              </Text>
+            </View>
+          )}
           chartConfig={{
             
             backgroundColor: "#023047",
@@ -242,10 +253,15 @@ function HistoryScreen({navigation}): React.JSX.Element {
           bezier
           style={{
             borderBottomLeftRadius: 16,
-            borderTopLeftRadius: 0
+            borderTopLeftRadius: 0,
+            paddingBottom: 1
           }}/>
           
         </ScrollView>
+        <View style={styles.unitView}>
+            <Text style={[styles.labela, {color: "#8ecae6", fontSize: 15}]}>Odabrana Veličina: {labelUnit}</Text>
+            <Text style={[styles.labela, {color: "#fb8500", fontSize: 15}]}>Korelisana Veličina: {correlationUnit.replace("/", "")}</Text>
+          </View>
         <Divider width={3} color={'#8ecae6'} />
           <DatePicker modal open={open} date={pickedDate} mode='date' maximumDate={new Date()} buttonColor='#fb8500' dividerColor='#8ecae6' title="Odaberite datum"
           onConfirm={(date) => {
@@ -331,6 +347,9 @@ const styles = StyleSheet.create({
     marginTop:22,
     alignItems: 'center'
   },
+  unitView:{
+    alignItems: "center"
+  }
 
 });
 

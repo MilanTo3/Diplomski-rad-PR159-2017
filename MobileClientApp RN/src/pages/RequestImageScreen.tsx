@@ -54,7 +54,11 @@ function RequestImageScreen({navigation}): React.JSX.Element {
         })}, []);
 
     function downloadImage(){
-        ReactNativeBlobUtil.fetch('GET', 'https://agropharmrs.com/cdn/shop/products/Mithrax1kg.jpg', { Authorization: 'Bearer access-token...',})
+
+      fetch('https://api.thingspeak.com/update?api_key=76ATXSZ223T5OQ6D&field6=IR');
+
+      // Poll until i get a link <l>imgur.om/asdahsdkjh
+      ReactNativeBlobUtil.fetch('GET', 'https://agropharmrs.com/cdn/shop/products/Mithrax1kg.jpg', { Authorization: 'Bearer access-token...',})
         .then((res) => {
             let status = res.info().status;
 
