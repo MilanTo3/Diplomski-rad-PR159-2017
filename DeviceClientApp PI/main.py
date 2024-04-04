@@ -9,8 +9,7 @@ from PIL import Image
 import adafruit_dht
 import gpiozero
 from sensorManager import SensorManager
-
-#ser = serial.Serial('/dev/ttyS0', baudrate=115200, timeout=1) # check this!
+from sim7600Manager import Sim7600Manager
 
 # ----- Podaci za MQTT autentikaciju i komunikaciju:
 
@@ -25,12 +24,12 @@ password = conf.get('My Section', 'password')
 channelID = conf.get('My Section', 'channelID')
 
 mqtt_server = "mqtt3.thingspeak.com"
-port = 1883
 
-pub = "channels/"+ channelID +"/publish/fields/" # field1=100&field2=50
-sub = "channels/"+ channelID +"/subscribe/fields/field#" # subscribe to image request field
+pub = "channels/"+ channelID +"/publish" # field1=100&field2=50
+sub = "channels/"+ channelID +"/subscribe/fields/field6" # subscribe to image request field
 
 sensorManager = SensorManager()
+sim7600 = Sim7600Manager(ID, mqtt_server, username, password, pub, sub)
 # ------------------ Setup sim7600Manager.
 # ------------------
 #imageManager = ImageManager()
@@ -53,6 +52,7 @@ Record = { "vlaznost_vazduha": 0,
 
 def loop():
 
+  sim7600.setup()
   while True:
     getRecords()
     writeRecords()
