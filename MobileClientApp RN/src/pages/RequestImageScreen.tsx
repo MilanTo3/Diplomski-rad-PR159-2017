@@ -26,25 +26,22 @@ import SelectDropdown from 'react-native-select-dropdown';
 import { Divider } from '@rneui/themed';
 import Iconm from 'react-native-vector-icons/MaterialCommunityIcons';
 import ReactNativeBlobUtil from 'react-native-blob-util';
-import DefaultImage from '../images/download-image-icon.png';
 
 function RequestImageScreen({navigation}): React.JSX.Element {
+    
+    const [image, setImage] = useState('');
+    const [modalVisible, setModalVisible] = useState(false);
+    const [text, setText] = useState('');
 
-    const exampleImage = Image.resolveAssetSource(DefaultImage).uri;
-    const [image, setImage] = useState(exampleImage);
-
-    function downloadImage(){
-        ReactNativeBlobUtil.fetch('GET', 'https://agropharmrs.com/cdn/shop/products/Mithrax1kg.jpg', { Authorization: 'Bearer access-token...',})
+    useEffect(() => {
+    ReactNativeBlobUtil.fetch('GET', 'https://images.pexels.com/photos/417074/pexels-photo-417074.jpeg', { Authorization: 'Bearer access-token...',})
         .then((res) => {
             let status = res.info().status;
 
             if (status == 200) {
                 // the conversion is done in native code
                 let base64Str = res.base64();
-                setImage(base64Str);
-                // the following conversions are done in js, it's SYNC
-                //let text = res.text()
-                //let json = res.json()
+                setImage(`data:image/png;base64,${base64Str}`);
             }
             else {
                 // handle other status codes
@@ -52,28 +49,79 @@ function RequestImageScreen({navigation}): React.JSX.Element {
         })
         // Something went wrong:
         .catch((errorMessage, statusCode) => {
-            // error handling
+            setText("Greška prilikom preuzimanja slike. Proverite Vašu internet konekciju.");
+            setModalVisible(true);
+        })}, []);
+
+    function downloadImage(){
+
+      fetch('https://api.thingspeak.com/update?api_key=76ATXSZ223T5OQ6D&field6=IR');
+
+      // Poll until i get a link <l>imgur.om/asdahsdkjh
+      ReactNativeBlobUtil.fetch('GET', 'https://agropharmrs.com/cdn/shop/products/Mithrax1kg.jpg', { Authorization: 'Bearer access-token...',})
+        .then((res) => {
+            let status = res.info().status;
+
+            if (status == 200) {
+                // the conversion is done in native code
+                let base64Str = res.base64();
+                setImage(`data:image/png;base64,${base64Str}`);
+            }
+            else {
+                // handle other status codes
+            }
+        })
+        // Something went wrong:
+        .catch((errorMessage, statusCode) => {
+            setText("Greška prilikom preuzimanja slike. Proverite Vašu internet konekciju.");
+            setModalVisible(true);
         })
     }
 
     function saveImage(){
-        ReactNativeBlobUtil
-        .config({
-            // add this option that makes response data to be stored as a file,
-            // this is much more performant.
-            fileCache: true,
+        let dirs = ReactNativeBlobUtil.fs.dirs;
+        ReactNativeBlobUtil.config({
+            // response data will be saved to this path if it has access right.
+            path: dirs.LegacyDownloadDir + '/image.jpg',
         })
         .fetch('GET', 'https://agropharmrs.com/cdn/shop/products/Mithrax1kg.jpg', {
             //some headers ..
         })
         .then((res) => {
-            // the temp file path
-            console.log('The file saved to ', res.path())
+            // the path should be dirs.DocumentDir + 'path-to-file.anything'
+            console.log('The file saved to ', res.path());
+            setText("Slika je uspešno sačuvana u Vašu Downloads datoteku na uređaju.");
+            setModalVisible(true);
+        }).catch((errorMessage, statusCode) => {
+            setText("Greška prilikom čuvanja slike.");
+            setModalVisible(true);
         })
     }
 
     return (
       <SafeAreaView style={{flex:1}}>
+
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => {
+            setModalVisible(!modalVisible);
+          }}>
+            <View style={styles.centeredView}>
+              <LinearGradient start={{x: 0, y: 0.5}} end={{x: 0.3, y: 1.0}} colors={['rgba(2, 48, 71 ,1)', '#8ecae6']} style={styles.modalView}>
+                <View style={styles.modalTextView}>
+                  <Text style={styles.labela}>{text}</Text>
+                </View>
+                <View style={{marginTop: 21}}>
+                  <TouchableOpacity onPress={() => setModalVisible(!modalVisible)} style={styles.buttonStyle2}>
+                    <Text style={styles.btnText}>Zatvori</Text>
+                  </TouchableOpacity>
+                </View>
+              </LinearGradient>
+            </View>
+          </Modal>
+
         <LinearGradient style={{flex:1}} start={{x: 0, y: 0.5}} end={{x: 0.3, y: 1.0}} colors={['rgba(2, 48, 71 ,0.9)', 'rgba(251, 133, 0, 0.9)']}>
             <TouchableOpacity onPress={() => navigation.navigate('home')} style={styles.buttonStyle}>
                 <Iconm style={{color: 'white'}} name="keyboard-backspace" size={24} color="white" />
@@ -81,7 +129,7 @@ function RequestImageScreen({navigation}): React.JSX.Element {
 
             <Text style={styles.title}>Zatražite sliku u polju uživo:</Text>
             <View style={styles.imageView}>
-                <Image style={styles.image} source={{uri: `data:image/gif;base64,${image}`}} />
+                <Image style={styles.image} source={{ uri: image}} />
             </View>
             <Divider width={3} color={'#8ecae6'} />
 
@@ -171,7 +219,42 @@ const styles = StyleSheet.create({
     buttonWrapper:{
         marginTop: 24,
         alignItems: 'center'
-    }
+    },
+    centeredView: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)'
+      },
+    modalView: {
+        margin: 20,
+        borderRadius: 20,
+        padding: 35,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+          width: 0,
+          height: 2,
+        },
+        shadowOpacity: 0.5,
+        shadowRadius: 4,
+        elevation: 5,
+     
+      },
+      buttonStyle2:{
+        backgroundColor: '#023047',
+        width: 140,
+        maxHeight: 50,
+        justifyContent: 'center', //Centered vertically
+        alignItems: 'center', //Centered horizontally
+        flex:1,
+        borderRadius: 5,
+      },
+      modalTextView:{
+        justifyContent: 'center',
+        alignItems: 'center'
+      }
+      
 });
 
 export default RequestImageScreen;
