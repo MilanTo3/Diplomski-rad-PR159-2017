@@ -3,7 +3,7 @@ import gpiozero, board
 
 class SensorManager:
     # ----------- Kalibracija senzora vlaznosti zemljista
-    drylimit = 780
+    drylimit = 775
     wetlimit = 280
     # 10 seconds calibration
 

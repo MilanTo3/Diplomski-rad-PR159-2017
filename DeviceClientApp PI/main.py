@@ -56,7 +56,7 @@ def loop():
   while True:
     getRecords()
     writeRecords()
-    #sendRecords()
+    sendRecords()
 
     time.sleep(15)
 
@@ -76,7 +76,8 @@ def writeRecords():
         + "\t UV zracenje: " + str(Record["uv_zracenje"]))
 
 def sendRecords():
-  print("to do")
+  sim7600.publishData("field1=" + str(Record["temperatura"]) + "&field2=" + str(Record["vlaznost_vazduha"]) + "&field3=" + str(Record["vlaznost_zemljista"]) 
+                      + "&field4=" + str(Record["kvalitet_vazduha"]) + "&field5=" + str(Record["uv_zracenje"]))
   
 def getResponseData():
   while True:

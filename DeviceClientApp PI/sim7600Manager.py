@@ -23,14 +23,14 @@ class Sim7600Manager:
     def setup(self):
         isSerial2Available = True
         self.SentMessage('AT+CMQTTDISC=0,60\r\n')
+        time.sleep(0.5) 
         self.SentMessage('AT+CMQTTREL=0\r\n')
-        self.SentMessage('AT+CMQTTSTOP\r\n')
-        time.sleep(0.5)
+        time.sleep(0.5) 
         self.SentMessage('AT+CMQTTSTART\r\n') # Enable MQTT service.
         time.sleep(1)
         connect_cmd = 'AT+CMQTTACCQ=0,"'+ self.ID +'",0,4' # Apply for MQTT client with client ID.
         self.SentMessage(connect_cmd + '\r\n')
-        time.sleep(0.5)
+        time.sleep(1)
         connect_cmd = 'AT+CMQTTCONNECT=0,"tcp://mqtt3.thingspeak.com",60,1,"'+ self.username +'","'+ self.password +'"'  # Send MQTT connection request to the server.
         self.SentMessage(connect_cmd + '\r\n')
         time.sleep(1)
@@ -52,6 +52,7 @@ class Sim7600Manager:
         time.sleep(1)
 
         response = self.ser.read_all().decode()
+        print(response)
         responses = response.split('\r\n')
         for resp in responses:
             if "+CREG: 0," in resp:
@@ -87,15 +88,19 @@ class Sim7600Manager:
 
     def publishData(self, updateMsn):
         
-        print(updateMsn)
-        dataLength = str(len(str(updateMsn)))
-        
+        dataLength = str(len(self.pub))
+        connect_cmd = "AT+CMQTTTOPIC=0,{}".format(dataLength) # Publish to the inputed topic.
+        self.input_message(connect_cmd, self.pub)
+
+        dataLength = str(len(str(updateMsn)))        
         connect_cmd = "AT+CMQTTPAYLOAD=0,{}".format(dataLength) # Input the publish message
         self.input_message(connect_cmd, str(updateMsn))
 
         time.sleep(0.5)
         self.ser.write(b'AT+CMQTTPUB=0,0,120\r\n') # Publish the inputed message.
-        
+        response = self.ser.read_all().decode()
+        print(response)
+
     def querySignalStrength(self):
         self.ser.write(b'AT+CSQ\r\n')
         time.sleep(1)
