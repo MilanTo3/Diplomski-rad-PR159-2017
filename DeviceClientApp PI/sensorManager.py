@@ -10,7 +10,7 @@ class SensorManager:
     airqch = gpiozero.MCP3208(channel=0)
     soilmch = gpiozero.MCP3208(channel=1)
     uvch = gpiozero.MCP3208(channel=2)
-    dht22 = adafruit_dht.DHT22(board.D22, use_pulseio=False)
+    dht22 = adafruit_dht.DHT22(board.D22, use_pulseio=True)
 
     def readTempandHumidity(self):
         signal = False

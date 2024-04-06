@@ -36,19 +36,12 @@ class Sim7600Manager:
         connect_cmd = 'AT+CMQTTCONNECT=0,"tcp://mqtt3.thingspeak.com",60,1,"'+ self.username +'","'+ self.password +'"'  # Send MQTT connection request to the server.
         self.SentMessage(connect_cmd + '\r\n')
         time.sleep(2)
-        dataLength = str(len(self.pub))
-        connect_cmd = "AT+CMQTTTOPIC=0,{}".format(dataLength) # Publish to the inputed topic.
-        self.input_message(connect_cmd, self.pub)
-
-        time.sleep(1.5)
 
         # Deo za subscribe.
         
         dataLength = str(len('channels/2429193/subscribe'))
-        connect_cmd = "AT+CMQTTSUBTOPIC=0,{},0".format(dataLength) # Subscribe to the inputed topic.
+        connect_cmd = "AT+CMQTTSUB=0,{},0".format(dataLength) # Subscribe to the inputed topic.
         self.input_message(connect_cmd, "channels/2429193/subscribe")
-        time.sleep(0.5)
-        self.SentMessage('AT+CMQTTSUB=0\r\n')
 
     def SentMessage(self, p_char):
         global isSerial2Available # CAREFUL!!!
@@ -78,7 +71,6 @@ class Sim7600Manager:
         global startSent
         self.ser.write(p_char.encode() + b'\r\n')
         time.sleep(0.2)
-        encodedstr = p_data.encode() + b'\r\n'
         self.ser.write(p_data.encode() + b'\r\n')
         time.sleep(1)
 
@@ -88,8 +80,6 @@ class Sim7600Manager:
             if "+CMQTTSUB: 0," in resp:
                 status = int(resp.split("+CMQTTSUB: 0,")[1])
                 if status == 0:
-                    print("\nSubTopic Sub")
-                    startSent = True
                     self.subThreadStart()
 
     def publishData(self, updateMsn):
