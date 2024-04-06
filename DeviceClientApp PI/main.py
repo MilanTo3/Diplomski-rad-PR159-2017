@@ -28,9 +28,13 @@ mqtt_server = "mqtt3.thingspeak.com"
 pub = "channels/"+ channelID +"/publish" # field1=100&field2=50
 sub = "channels/"+ channelID +"/subscribe/fields/field6" # subscribe to image request field
 
+def thread_Start():
+  thread = threading.Thread(target=getResponseData)
+  thread.daemon = True
+  thread.start()
+
 sensorManager = SensorManager()
-sim7600 = Sim7600Manager(ID, mqtt_server, username, password, pub, sub)
-# ------------------ Setup sim7600Manager.
+sim7600 = Sim7600Manager(ID, mqtt_server, username, password, pub, sub, thread_Start)
 # ------------------
 #imageManager = ImageManager()
 #camController = CameraController()
@@ -78,7 +82,7 @@ def writeRecords():
 def sendRecords():
   sim7600.publishData("field1=" + str(Record["temperatura"]) + "&field2=" + str(Record["vlaznost_vazduha"]) + "&field3=" + str(Record["vlaznost_zemljista"]) 
                       + "&field4=" + str(Record["kvalitet_vazduha"]) + "&field5=" + str(Record["uv_zracenje"]))
-  
+
 def getResponseData():
   while True:
     print("Subscribe method!")

@@ -10,8 +10,9 @@ class Sim7600Manager:
     pub = ""
     sub = ""
     ser = serial.Serial('/dev/ttyS0', baudrate=115200, timeout=1) # check this!
-    
-    def __init__(self, client_id, server, user, password, pubi, subi):
+    subThreadStart = None
+
+    def __init__(self, client_id, server, user, password, pubi, subi, subThread):
         
         self.ID = client_id
         self.mqtt_server = server
@@ -19,6 +20,7 @@ class Sim7600Manager:
         self.password = password
         self.pub = pubi
         self.sub = subi
+        self.subThreadStart = subThread
 
     def setup(self):
         isSerial2Available = True
@@ -33,17 +35,20 @@ class Sim7600Manager:
         time.sleep(1)
         connect_cmd = 'AT+CMQTTCONNECT=0,"tcp://mqtt3.thingspeak.com",60,1,"'+ self.username +'","'+ self.password +'"'  # Send MQTT connection request to the server.
         self.SentMessage(connect_cmd + '\r\n')
-        time.sleep(1)
+        time.sleep(2)
         dataLength = str(len(self.pub))
         connect_cmd = "AT+CMQTTTOPIC=0,{}".format(dataLength) # Publish to the inputed topic.
         self.input_message(connect_cmd, self.pub)
 
-        time.sleep(1)
+        time.sleep(1.5)
 
         # Deo za subscribe.
-        #dataLength = str(len(self.sub))
-        #connect_cmd = "AT+CMQTTSUB=0,{},0".format(dataLength) # Subscribe to the inputed topic.
-        #self.input_message(connect_cmd, self.sub, thread_Start)
+        
+        dataLength = str(len('channels/2429193/subscribe'))
+        connect_cmd = "AT+CMQTTSUBTOPIC=0,{},0".format(dataLength) # Subscribe to the inputed topic.
+        self.input_message(connect_cmd, "channels/2429193/subscribe")
+        time.sleep(0.5)
+        self.SentMessage('AT+CMQTTSUB=0\r\n')
 
     def SentMessage(self, p_char):
         global isSerial2Available # CAREFUL!!!
@@ -73,6 +78,7 @@ class Sim7600Manager:
         global startSent
         self.ser.write(p_char.encode() + b'\r\n')
         time.sleep(0.2)
+        encodedstr = p_data.encode() + b'\r\n'
         self.ser.write(p_data.encode() + b'\r\n')
         time.sleep(1)
 
@@ -84,7 +90,7 @@ class Sim7600Manager:
                 if status == 0:
                     print("\nSubTopic Sub")
                     startSent = True
-                    #thread_Start()
+                    self.subThreadStart()
 
     def publishData(self, updateMsn):
         
@@ -98,13 +104,3 @@ class Sim7600Manager:
 
         time.sleep(0.5)
         self.ser.write(b'AT+CMQTTPUB=0,0,120\r\n') # Publish the inputed message.
-        response = self.ser.read_all().decode()
-        print(response)
-
-    def querySignalStrength(self):
-        self.ser.write(b'AT+CSQ\r\n')
-        time.sleep(1)
-
-        response = self.ser.read_all().decode()
-        print(response)
-        return response
