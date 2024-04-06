@@ -23,7 +23,6 @@ class Sim7600Manager:
         self.subThreadStart = subThread
 
     def setup(self):
-        isSerial2Available = True
         self.SentMessage('AT+CMQTTDISC=0,60\r\n')
         time.sleep(0.5) 
         self.SentMessage('AT+CMQTTREL=0\r\n')
@@ -39,9 +38,9 @@ class Sim7600Manager:
 
         # Deo za subscribe.
         
-        dataLength = str(len('channels/2429193/subscribe'))
+        dataLength = str(len(self.sub))
         connect_cmd = "AT+CMQTTSUB=0,{},0".format(dataLength) # Subscribe to the inputed topic.
-        self.input_message(connect_cmd, "channels/2429193/subscribe")
+        self.input_message(connect_cmd, self.sub)
 
     def SentMessage(self, p_char):
         global isSerial2Available # CAREFUL!!!
@@ -50,8 +49,8 @@ class Sim7600Manager:
         time.sleep(1)
 
         response = self.ser.read_all().decode()
-        print(response)
         responses = response.split('\r\n')
+        print(response)
         for resp in responses:
             if "+CREG: 0," in resp:
                 status = int(resp.split("+CREG: 0,")[1]) # Check if connected to the network.
@@ -68,7 +67,7 @@ class Sim7600Manager:
                 print("\nMqtt is already Connected")
                     
     def input_message(self, p_char, p_data):
-        global startSent
+
         self.ser.write(p_char.encode() + b'\r\n')
         time.sleep(0.2)
         self.ser.write(p_data.encode() + b'\r\n')
@@ -76,14 +75,14 @@ class Sim7600Manager:
 
         response = self.ser.read_all().decode()
         responses = response.split('\r\n')
+        print(response)
         for resp in responses:
             if "+CMQTTSUB: 0," in resp:
                 status = int(resp.split("+CMQTTSUB: 0,")[1])
                 if status == 0:
-                    self.subThreadStart()
+                    self.subThreadStart(self.ser)
 
     def publishData(self, updateMsn):
-        
         dataLength = str(len(self.pub))
         connect_cmd = "AT+CMQTTTOPIC=0,{}".format(dataLength) # Publish to the inputed topic.
         self.input_message(connect_cmd, self.pub)
@@ -91,6 +90,6 @@ class Sim7600Manager:
         dataLength = str(len(str(updateMsn)))        
         connect_cmd = "AT+CMQTTPAYLOAD=0,{}".format(dataLength) # Input the publish message
         self.input_message(connect_cmd, str(updateMsn))
-
+        
         time.sleep(0.5)
         self.ser.write(b'AT+CMQTTPUB=0,0,120\r\n') # Publish the inputed message.

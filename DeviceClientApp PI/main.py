@@ -26,10 +26,10 @@ channelID = conf.get('My Section', 'channelID')
 mqtt_server = "mqtt3.thingspeak.com"
 
 pub = "channels/"+ channelID +"/publish" # field1=100&field2=50
-sub = "channels/"+ channelID +"/subscribe/fields/field6" # subscribe to image request field
+sub = "channels/"+ channelID +"/subscribe/fields/field1" # subscribe to image request field
 
-def thread_Start():
-  thread = threading.Thread(target=getResponseData)
+def thread_Start(ser):
+  thread = threading.Thread(target=getResponseData, args=(ser, ))
   thread.daemon = True
   thread.start()
 
@@ -40,7 +40,6 @@ sim7600 = Sim7600Manager(ID, mqtt_server, username, password, pub, sub, thread_S
 #camController = CameraController()
 #camController.takePicture()
 #imageManager.JPEGSaveWithTargetSize(Image.open(path / 'capture.jpg'), 'compressedcapture.jpg', 105000)
-#imageManager.uploadImage()
 def buttonCallback(self):
   print('callback: ' + str(GPIO.input(17)))
 
@@ -83,10 +82,25 @@ def sendRecords():
   sim7600.publishData("field1=" + str(Record["temperatura"]) + "&field2=" + str(Record["vlaznost_vazduha"]) + "&field3=" + str(Record["vlaznost_zemljista"]) 
                       + "&field4=" + str(Record["kvalitet_vazduha"]) + "&field5=" + str(Record["uv_zracenje"]))
 
-def getResponseData():
+def getResponseData(ser):
+  
   while True:
-    print("Subscribe method!")
-    time.sleep(10)
+    while ser.in_waiting:
+      c:str = ser.read_all().decode()
+      if "CMQTTRXPAYLOAD" in c:
+        k = c.split('\r\n')
+        filter = [x for x in k if x.startswith('+CMQTTRXPAYLOAD')]
+        payloadIndex = k.index(filter[0]) + 1
+        payload = k[payloadIndex]
+        print('Payload is: '+ payload)
+        if(payload == 'IR'): # if theres a image request:
+          #camController.takePicture()
+          #imageManager.JPEGSaveWithTargetSize(Image.open(path / 'capture.jpg'), 'compressedcapture.jpg', 105000)
+          #base64image = imageManager.convertToBase64()
+
+          
+      time.sleep(1)
+
   # 1. Get request from the phone for image. Image flag is YR (otherwise NR)
   # 2. Snip an image.
   # 3. Compress and convert the image to base64.
