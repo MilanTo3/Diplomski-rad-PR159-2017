@@ -22,6 +22,7 @@ ID = conf.get('My Section', 'ID') # Client id
 username = conf.get('My Section', 'username')
 password = conf.get('My Section', 'password')
 channelID = conf.get('My Section', 'channelID')
+imgurKey = conf.get('My Section', 'imgurClientID')
 
 mqtt_server = "mqtt3.thingspeak.com"
 
@@ -35,7 +36,7 @@ def thread_Start(ser):
 
 gsmLock = threading.Lock()
 sensorManager = SensorManager()
-sim7600 = Sim7600Manager(ID, mqtt_server, username, password, pub, sub, thread_Start)
+sim7600 = Sim7600Manager(ID, mqtt_server, username, password, pub, sub, imgurKey, thread_Start)
 # ------------------
 imageManager = ImageManager()
 camController = CameraController()
@@ -101,7 +102,7 @@ def getResponseData(ser):
           camController.takePicture()
           imageManager.JPEGSaveWithTargetSize(Image.open(path / 'capture.jpg'), 'compressedcapture.jpg', 105000)
           base64image = imageManager.convertToBase64()
-          
+
           
       time.sleep(1)
 

@@ -11,8 +11,10 @@ class Sim7600Manager:
     sub = ""
     ser = serial.Serial('/dev/ttyS0', baudrate=115200, timeout=1) # check this!
     subThreadStart = None
+    uploadImage = 'https://api.imgur.com/3/image'
+    imgurKey = ''
 
-    def __init__(self, client_id, server, user, password, pubi, subi, subThread):
+    def __init__(self, client_id, server, user, password, pubi, subi, key, subThread):
         
         self.ID = client_id
         self.mqtt_server = server
@@ -21,6 +23,7 @@ class Sim7600Manager:
         self.pub = pubi
         self.sub = subi
         self.subThreadStart = subThread
+        self.imgurKey = key
 
     def setup(self):
         self.SentMessage('AT+CMQTTDISC=0,60\r\n')
@@ -93,3 +96,19 @@ class Sim7600Manager:
         
         time.sleep(0.5)
         self.ser.write(b'AT+CMQTTPUB=0,0,120\r\n') # Publish the inputed message.
+
+    def httpPostImageToImgur(self, image64):
+        self.SentMessage('AT+HTTPINIT\r\n')
+        time.sleep(0.5)
+        self.SentMessage('AT+HTTPPARA=URL,{}\r\n'.format(self.uploadImage))
+        time.sleep(0.5)
+        self.SentMessage('AT+HTTPPARA=USERDATA,Authorization: Client-ID {}\r\n'.format(self.imgurKey))
+        time.sleep(0.5)
+        length = len('image: ' + image64)
+        self.input_message('AT+HTTPDATA={},300'.format(length), 'image: ' + image64)
+        time.sleep(1)
+        self.SentMessage('AT+HTTPACTION=1')
+        time.sleep(1)
+        self.SentMessage('AT+HTTPREAD=200')
+        time.sleep(0.5)
+        self.SentMessage('AT+HTTPTERM')
