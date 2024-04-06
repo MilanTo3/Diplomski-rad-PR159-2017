@@ -3,7 +3,7 @@ import json, threading, os, serial, board
 from configparser import ConfigParser
 from pathlib import Path
 import RPi.GPIO as GPIO
-#from camController import CameraController
+from camController import CameraController
 from imageManager import ImageManager
 from PIL import Image
 import adafruit_dht
@@ -33,13 +33,13 @@ def thread_Start(ser):
   thread.daemon = True
   thread.start()
 
+gsmLock = threading.Lock()
 sensorManager = SensorManager()
 sim7600 = Sim7600Manager(ID, mqtt_server, username, password, pub, sub, thread_Start)
 # ------------------
-#imageManager = ImageManager()
-#camController = CameraController()
-#camController.takePicture()
-#imageManager.JPEGSaveWithTargetSize(Image.open(path / 'capture.jpg'), 'compressedcapture.jpg', 105000)
+imageManager = ImageManager()
+camController = CameraController()
+
 def buttonCallback(self):
   print('callback: ' + str(GPIO.input(17)))
 
@@ -79,14 +79,18 @@ def writeRecords():
         + "\t UV zracenje: " + str(Record["uv_zracenje"]))
 
 def sendRecords():
+  gsmLock.acquire()
   sim7600.publishData("field1=" + str(Record["temperatura"]) + "&field2=" + str(Record["vlaznost_vazduha"]) + "&field3=" + str(Record["vlaznost_zemljista"]) 
                       + "&field4=" + str(Record["kvalitet_vazduha"]) + "&field5=" + str(Record["uv_zracenje"]))
+  gsmLock.release()
 
 def getResponseData(ser):
   
   while True:
     while ser.in_waiting:
+      gsmLock.acquire()
       c:str = ser.read_all().decode()
+      gsmLock.release()
       if "CMQTTRXPAYLOAD" in c:
         k = c.split('\r\n')
         filter = [x for x in k if x.startswith('+CMQTTRXPAYLOAD')]
@@ -94,10 +98,10 @@ def getResponseData(ser):
         payload = k[payloadIndex]
         print('Payload is: '+ payload)
         if(payload == 'IR'): # if theres a image request:
-          #camController.takePicture()
-          #imageManager.JPEGSaveWithTargetSize(Image.open(path / 'capture.jpg'), 'compressedcapture.jpg', 105000)
-          #base64image = imageManager.convertToBase64()
-
+          camController.takePicture()
+          imageManager.JPEGSaveWithTargetSize(Image.open(path / 'capture.jpg'), 'compressedcapture.jpg', 105000)
+          base64image = imageManager.convertToBase64()
+          
           
       time.sleep(1)
 
