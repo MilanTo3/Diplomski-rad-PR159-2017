@@ -53,7 +53,7 @@ class Sim7600Manager:
 
         response = self.ser.read_all().decode()
         responses = response.split('\r\n')
-        print(response)
+        #print(response)
         for resp in responses:
             if "+CREG: 0," in resp:
                 status = int(resp.split("+CREG: 0,")[1]) # Check if connected to the network.
@@ -78,7 +78,7 @@ class Sim7600Manager:
 
         response = self.ser.read_all().decode()
         responses = response.split('\r\n')
-        print(response)
+        #print(response)
         for resp in responses:
             if "+CMQTTSUB: 0," in resp:
                 status = int(resp.split("+CMQTTSUB: 0,")[1])
@@ -113,7 +113,24 @@ class Sim7600Manager:
         self.input_message('AT+HTTPDATA={},400'.format(len(f)), f)
         time.sleep(1)
         self.SentMessage('AT+HTTPACTION=1\r\n')
-        time.sleep(1)
-        self.SentMessage('AT+HTTPREAD=500\r\n')
+        time.sleep(2)
+        self.getResponse()
         time.sleep(0.5)
         self.SentMessage('AT+HTTPTERM\r\n')
+
+    def getResponse(self):
+        towrite = 'AT+HTTPREAD=520\r\n'.encode()
+        self.ser.write(towrite)
+        time.sleep(1)
+        response = self.ser.read_all().decode()
+        responses = response.split('\r\n')
+
+        status = [x for x in responses if x.startswith('{"status"')]
+        if status.count != 0:
+            responseObj = json.loads(status[0])
+            status = responseObj["status"]
+            link = responseObj["data"]["link"]
+            self.publishData("field6={}".format(str(status) + " " + link))
+        else:
+            self.publishData("field6=600 nije moguce povezati se sa imgur.com.")
+            

@@ -1,5 +1,5 @@
 import time
-import json, threading, os, serial, board
+import threading
 from configparser import ConfigParser
 from pathlib import Path
 import RPi.GPIO as GPIO
@@ -27,7 +27,7 @@ imgurKey = conf.get('My Section', 'imgurClientID')
 mqtt_server = "mqtt3.thingspeak.com"
 
 pub = "channels/"+ channelID +"/publish" # field1=100&field2=50
-sub = "channels/"+ channelID +"/subscribe/fields/field1" # subscribe to image request field
+sub = "channels/"+ channelID +"/subscribe/fields/field6" # subscribe to image request field
 
 def thread_Start(ser):
   thread = threading.Thread(target=getResponseData, args=(ser, ))
@@ -45,8 +45,8 @@ def buttonCallback(self):
   print('callback: ' + str(GPIO.input(17)))
 
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(17, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.add_event_detect(17, GPIO.RISING, buttonCallback)
+#GPIO.setup(17, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+#GPIO.add_event_detect(17, GPIO.RISING, buttonCallback)
 
 Record = { "vlaznost_vazduha": 0,
            "temperatura": 0,
@@ -95,16 +95,17 @@ def getResponseData(ser):
       if "CMQTTRXPAYLOAD" in c:
         k = c.split('\r\n')
         filter = [x for x in k if x.startswith('+CMQTTRXPAYLOAD')]
-        payloadIndex = k.index(filter[0]) + 1
-        payload = k[payloadIndex]
-        print('Payload is: '+ payload)
-        #if(payload == 'IR'): # if theres a image request:
-        camController.takePicture()
-        imageManager.JPEGSaveWithTargetSize(Image.open(path / 'capture.jpg'), 'compressedcapture.jpg', 100000)
-        base64image = imageManager.convertToBase64()
-        gsmLock.acquire()
-        sim7600.httpPostImageToImgur(base64image)
-        gsmLock.release()
+        if filter.count != 0:
+          payloadIndex = k.index(filter[0]) + 1
+          payload = k[payloadIndex]
+          print('Payload is: '+ payload)
+          if(payload == 'IR'): # if theres a image request:
+            camController.takePicture()
+            imageManager.JPEGSaveWithTargetSize(Image.open(path / 'capture.jpg'), 'compressedcapture.jpg', 100000)
+            base64image = imageManager.convertToBase64()
+            gsmLock.acquire()
+            sim7600.httpPostImageToImgur(base64image)
+            gsmLock.release()
           
       time.sleep(1)
 
