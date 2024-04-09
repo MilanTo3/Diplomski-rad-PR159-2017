@@ -1,5 +1,5 @@
 import time
-import serial
+import serial, json
 
 class Sim7600Manager:
     
@@ -98,17 +98,22 @@ class Sim7600Manager:
         self.ser.write(b'AT+CMQTTPUB=0,0,120\r\n') # Publish the inputed message.
 
     def httpPostImageToImgur(self, image64):
+        self.SentMessage('AT+HTTPTERM\r\n')
+        time.sleep(0.5)
         self.SentMessage('AT+HTTPINIT\r\n')
         time.sleep(0.5)
-        self.SentMessage('AT+HTTPPARA=URL,{}\r\n'.format(self.uploadImage))
+        self.SentMessage('AT+HTTPPARA="URL","{}"\r\n'.format(self.uploadImage))
         time.sleep(0.5)
-        self.SentMessage('AT+HTTPPARA=USERDATA,Authorization: Client-ID {}\r\n'.format(self.imgurKey))
+        self.SentMessage('AT+HTTPPARA="USERDATA","Authorization: Client-ID {}"\r\n'.format(self.imgurKey))
         time.sleep(0.5)
-        length = len('image: ' + image64)
-        self.input_message('AT+HTTPDATA={},300'.format(length), 'image: ' + image64)
+        self.SentMessage('AT+HTTPPARA="CONTENT","application/json"\r\n')
+        time.sleep(0.5)
+        k = {"image": image64.decode()}
+        f = json.dumps(k)
+        self.input_message('AT+HTTPDATA={},400'.format(len(f)), f)
         time.sleep(1)
-        self.SentMessage('AT+HTTPACTION=1')
+        self.SentMessage('AT+HTTPACTION=1\r\n')
         time.sleep(1)
-        self.SentMessage('AT+HTTPREAD=200')
+        self.SentMessage('AT+HTTPREAD=500\r\n')
         time.sleep(0.5)
-        self.SentMessage('AT+HTTPTERM')
+        self.SentMessage('AT+HTTPTERM\r\n')

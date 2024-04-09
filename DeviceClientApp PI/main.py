@@ -98,11 +98,13 @@ def getResponseData(ser):
         payloadIndex = k.index(filter[0]) + 1
         payload = k[payloadIndex]
         print('Payload is: '+ payload)
-        if(payload == 'IR'): # if theres a image request:
-          camController.takePicture()
-          imageManager.JPEGSaveWithTargetSize(Image.open(path / 'capture.jpg'), 'compressedcapture.jpg', 105000)
-          base64image = imageManager.convertToBase64()
-
+        #if(payload == 'IR'): # if theres a image request:
+        camController.takePicture()
+        imageManager.JPEGSaveWithTargetSize(Image.open(path / 'capture.jpg'), 'compressedcapture.jpg', 100000)
+        base64image = imageManager.convertToBase64()
+        gsmLock.acquire()
+        sim7600.httpPostImageToImgur(base64image)
+        gsmLock.release()
           
       time.sleep(1)
 
