@@ -9,7 +9,7 @@ class Sim7600Manager:
     password = ""
     pub = ""
     sub = ""
-    ser = serial.Serial('/dev/ttyS0', baudrate=115200, timeout=1) # check this!
+    ser = serial.Serial('/dev/ttyS0', baudrate=921600, timeout=1) # check this!
     subThreadStart = None
     uploadImage = 'https://api.imgur.com/3/image'
     imgurKey = ''
@@ -26,6 +26,9 @@ class Sim7600Manager:
         self.imgurKey = key
 
     def setup(self):
+        self.SentMessage('AT+HTTPTERM\r\n')
+        self.SentMessage('AT+IPR=460800\r\n')
+        self.ser = serial.Serial('/dev/ttyS0', baudrate=460800, timeout=1)
         self.SentMessage('AT+CMQTTDISC=0,60\r\n')
         time.sleep(0.5) 
         self.SentMessage('AT+CMQTTREL=0\r\n')
@@ -53,7 +56,7 @@ class Sim7600Manager:
 
         response = self.ser.read_all().decode()
         responses = response.split('\r\n')
-        #print(response)
+        print(response)
         for resp in responses:
             if "+CREG: 0," in resp:
                 status = int(resp.split("+CREG: 0,")[1]) # Check if connected to the network.
@@ -78,7 +81,7 @@ class Sim7600Manager:
 
         response = self.ser.read_all().decode()
         responses = response.split('\r\n')
-        #print(response)
+        print(response)
         for resp in responses:
             if "+CMQTTSUB: 0," in resp:
                 status = int(resp.split("+CMQTTSUB: 0,")[1])
@@ -98,20 +101,15 @@ class Sim7600Manager:
         self.ser.write(b'AT+CMQTTPUB=0,0,120\r\n') # Publish the inputed message.
 
     def httpPostImageToImgur(self, image64):
-        self.SentMessage('AT+HTTPTERM\r\n')
-        time.sleep(0.5)
         self.SentMessage('AT+HTTPINIT\r\n')
-        time.sleep(0.5)
         self.SentMessage('AT+HTTPPARA="URL","{}"\r\n'.format(self.uploadImage))
-        time.sleep(0.5)
         self.SentMessage('AT+HTTPPARA="USERDATA","Authorization: Client-ID {}"\r\n'.format(self.imgurKey))
-        time.sleep(0.5)
         self.SentMessage('AT+HTTPPARA="CONTENT","application/json"\r\n')
-        time.sleep(0.5)
         k = {"image": image64.decode()}
         f = json.dumps(k)
+        self.SentMessage('ATE0\r\n')
         self.input_message('AT+HTTPDATA={},400'.format(len(f)), f)
-        time.sleep(1)
+        self.SentMessage('ATE1\r\n')
         self.SentMessage('AT+HTTPACTION=1\r\n')
         time.sleep(2)
         self.getResponse()

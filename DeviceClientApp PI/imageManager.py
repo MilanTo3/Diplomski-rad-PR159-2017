@@ -23,7 +23,7 @@ class ImageManager:
    def JPEGSaveWithTargetSize(self, im, filename, target):
       """Save the image as JPEG with the given name at best quality that makes less than "target" bytes"""
       # Min and Max quality
-      Qmin, Qmax = 20, 99
+      Qmin, Qmax = 10, 99
       # Highest acceptable quality found
       Qacc = -1
       while Qmin <= Qmax:
