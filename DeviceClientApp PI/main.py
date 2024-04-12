@@ -1,5 +1,5 @@
 import time
-import json, threading, os, serial, board
+import threading
 from configparser import ConfigParser
 from pathlib import Path
 import RPi.GPIO as GPIO
@@ -27,10 +27,10 @@ imgurKey = conf.get('My Section', 'imgurClientID')
 mqtt_server = "mqtt3.thingspeak.com"
 
 pub = "channels/"+ channelID +"/publish" # field1=100&field2=50
-sub = "channels/"+ channelID +"/subscribe/fields/field1" # subscribe to image request field
+sub = "channels/"+ channelID +"/subscribe/fields/field6" # subscribe to image request field
 
 def thread_Start(ser):
-  thread = threading.Thread(target=getResponseData, args=(ser, ))
+  thread = threading.Thread(target=getResponseData, args=(ser, gsmLock))
   thread.daemon = True
   thread.start()
 
@@ -45,8 +45,8 @@ def buttonCallback(self):
   print('callback: ' + str(GPIO.input(17)))
 
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(17, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.add_event_detect(17, GPIO.RISING, buttonCallback)
+#GPIO.setup(17, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+#GPIO.add_event_detect(17, GPIO.RISING, buttonCallback)
 
 Record = { "vlaznost_vazduha": 0,
            "temperatura": 0,
@@ -62,7 +62,7 @@ def loop():
     writeRecords()
     sendRecords()
 
-    time.sleep(15)
+    time.sleep(60)
 
 def getRecords():
 
@@ -85,36 +85,30 @@ def sendRecords():
                       + "&field4=" + str(Record["kvalitet_vazduha"]) + "&field5=" + str(Record["uv_zracenje"]))
   gsmLock.release()
 
-def getResponseData(ser):
+def getResponseData(ser, lock):
   
   while True:
     while ser.in_waiting:
-      gsmLock.acquire()
+      lock.acquire()
       c:str = ser.read_all().decode()
-      gsmLock.release()
+      lock.release()
       if "CMQTTRXPAYLOAD" in c:
         k = c.split('\r\n')
         filter = [x for x in k if x.startswith('+CMQTTRXPAYLOAD')]
-        payloadIndex = k.index(filter[0]) + 1
-        payload = k[payloadIndex]
-        print('Payload is: '+ payload)
-        #if(payload == 'IR'): # if theres a image request:
-        camController.takePicture()
-        imageManager.JPEGSaveWithTargetSize(Image.open(path / 'capture.jpg'), 'compressedcapture.jpg', 100000)
-        base64image = imageManager.convertToBase64()
-        gsmLock.acquire()
-        sim7600.httpPostImageToImgur(base64image)
-        gsmLock.release()
-          
-      time.sleep(1)
+        if filter.count != 0:
+          payloadIndex = k.index(filter[0]) + 1
+          payload = k[payloadIndex]
+          print('Payload is: '+ payload)
+          if(payload == 'IR'): # if theres a image request:
+            camController.takePicture()
+            imageManager.JPEGSaveWithTargetSize(Image.open(path / 'capture.jpg'), 'compressedcapture.jpg', 80000)
+            base64image = imageManager.convertToBase64()
+            lock.acquire()
+            sim7600.httpPostImageToImgur(base64image)
+            lock.release()
+    time.sleep(1)
 
-  # 1. Get request from the phone for image. Image flag is YR (otherwise NR)
-  # 2. Snip an image.
-  # 3. Compress and convert the image to base64.
-  # 4. upload the image to imgur.
-  # 5. publish the link of the image to the url field.
-  # 6. Send IU flag to the image request field.
-  # 7. When the IU flag is received by the phone, the phone downloads the image from the link.
-  # 8. The phone resets the image request field to NR.
+def sendSnapshot(base64image):
+  sim7600.httpPostImageToImgur(base64image)
 
 loop()
