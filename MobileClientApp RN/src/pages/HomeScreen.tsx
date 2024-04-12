@@ -51,17 +51,17 @@ function HomeScreen({navigation}): React.JSX.Element {
   const [airQDef, setairQDef] = useState('');
 
   const airQDefDet = () => {
-    if(Number(ttData.airQ) >= 0 && Number(ttData.airQ) <= 33){
+    if (Number(ttData.airQ) >= 0 && Number(ttData.airQ) <= 33){
       setairQDef('Veoma dobar');
-    }else if(Number(ttData.airQ) >= 34 && Number(ttData.airQ) <= 66){
+    } else if(Number(ttData.airQ) >= 34 && Number(ttData.airQ) <= 66){
       setairQDef('Dobar');
-    }else if(Number(ttData.airQ) >= 67 && Number(ttData.airQ) <= 99){
+    } else if(Number(ttData.airQ) >= 67 && Number(ttData.airQ) <= 99){
       setairQDef('Prihvatljiv');
-    }else if(Number(ttData.airQ) >= 100 && Number(ttData.airQ) <= 149){
+    } else if(Number(ttData.airQ) >= 100 && Number(ttData.airQ) <= 149){
       setairQDef('Loš');
-    }else if(Number(ttData.airQ) >= 150 && Number(ttData.airQ) <= 200){
+    } else if(Number(ttData.airQ) >= 150 && Number(ttData.airQ) <= 200){
       setairQDef('Veoma Loš');
-    }else if(Number(ttData.airQ) >= 201){
+    } else if(Number(ttData.airQ) >= 201){
       setairQDef('Izuzetno Loš');
     }
   }
@@ -195,7 +195,7 @@ function HomeScreen({navigation}): React.JSX.Element {
                 </View>
                 <Text style={styles.title2}>Poslednje ažurirano: </Text>
                 <Animated.View style={[{opacity: fadeAnim}]}>
-                  <Text style={styles.title2}>{ttData.createdAt.replace('T', ' ').replaceAll('-', '.').replace('+01:00', '')}</Text>
+                  <Text style={styles.title2}>{ttData.createdAt.replace('T', ' ').replaceAll('-', '.').replace('+02:00', '')}</Text>
                 </Animated.View>
   
             </LinearGradient>

@@ -26,13 +26,17 @@ import SelectDropdown from 'react-native-select-dropdown';
 import { Divider } from '@rneui/themed';
 import Iconm from 'react-native-vector-icons/MaterialCommunityIcons';
 import ReactNativeBlobUtil from 'react-native-blob-util';
+import mqtt from "precompiled-mqtt";
 
 function RequestImageScreen({navigation}): React.JSX.Element {
     
     const [image, setImage] = useState('');
     const [modalVisible, setModalVisible] = useState(false);
     const [text, setText] = useState('');
-
+    const [link, setLink] = useState('');
+    const [response, setResponse] = useState('');
+    const [timeoutCounter, setTimeoutCounter] = useState(0);
+  
     useEffect(() => {
     ReactNativeBlobUtil.fetch('GET', 'https://images.pexels.com/photos/417074/pexels-photo-417074.jpeg', { Authorization: 'Bearer access-token...',})
         .then((res) => {
@@ -53,12 +57,27 @@ function RequestImageScreen({navigation}): React.JSX.Element {
             setModalVisible(true);
         })}, []);
 
-    function downloadImage(){
+    const getLink = () =>{
 
       fetch('https://api.thingspeak.com/update?api_key=76ATXSZ223T5OQ6D&field6=IR');
+      setTimeout(() => {
 
-      // Poll until i get a link <l>imgur.om/asdahsdkjh
-      ReactNativeBlobUtil.fetch('GET', 'https://agropharmrs.com/cdn/shop/products/Mithrax1kg.jpg', { Authorization: 'Bearer access-token...',})
+        fetch('https://api.thingspeak.com/channels/2429193/fields/6/last.json').then(x => x.json()).then(json => setResponse(json.field6));
+        if (response.split(' ').length === 2){
+          if (response.split(' ')[0] === '200'){
+            setLink(response.split(' ')[1]);
+            downloadImage();
+          }
+        }
+        fetch('https://api.thingspeak.com/update?api_key=76ATXSZ223T5OQ6D&field6=NR');
+
+      }, 5000);
+    };
+
+    function downloadImage(){
+
+      // Poll until i get a link <l>imgur.com/asdahsdkjh
+      ReactNativeBlobUtil.fetch('GET', link, { Authorization: 'Client-ID d45163fade7f03b',})
         .then((res) => {
             let status = res.info().status;
 
@@ -75,7 +94,7 @@ function RequestImageScreen({navigation}): React.JSX.Element {
         .catch((errorMessage, statusCode) => {
             setText("Greška prilikom preuzimanja slike. Proverite Vašu internet konekciju.");
             setModalVisible(true);
-        })
+        });
     }
 
     function saveImage(){
@@ -84,18 +103,16 @@ function RequestImageScreen({navigation}): React.JSX.Element {
             // response data will be saved to this path if it has access right.
             path: dirs.LegacyDownloadDir + '/image.jpg',
         })
-        .fetch('GET', 'https://agropharmrs.com/cdn/shop/products/Mithrax1kg.jpg', {
-            //some headers ..
-        })
+        .fetch('GET', link, { Authorization: 'Client-ID d45163fade7f03b',})
         .then((res) => {
             // the path should be dirs.DocumentDir + 'path-to-file.anything'
             console.log('The file saved to ', res.path());
             setText("Slika je uspešno sačuvana u Vašu Downloads datoteku na uređaju.");
             setModalVisible(true);
         }).catch((errorMessage, statusCode) => {
-            setText("Greška prilikom čuvanja slike.");
+            setText("Greška prilikom čuvanja slike. Molimo, preuzmite sliku.");
             setModalVisible(true);
-        })
+        });
     }
 
     return (
@@ -134,7 +151,7 @@ function RequestImageScreen({navigation}): React.JSX.Element {
             <Divider width={3} color={'#8ecae6'} />
 
             <View style={styles.buttonWrapper}>
-                <TouchableOpacity style={styles.opButtons} onPress={() => downloadImage()}><Text style={styles.btnText}>Zatraži sliku</Text></TouchableOpacity>
+                <TouchableOpacity style={styles.opButtons} onPress={() => getLink()}><Text style={styles.btnText}>Zatraži sliku</Text></TouchableOpacity>
                 <TouchableOpacity style={styles.opButtons} onPress={() => saveImage()}><Text style={styles.btnText}>Sačuvaj sliku na uređaj</Text></TouchableOpacity>
             </View>
         </LinearGradient>
