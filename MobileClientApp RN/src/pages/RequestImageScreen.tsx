@@ -26,7 +26,7 @@ import SelectDropdown from 'react-native-select-dropdown';
 import { Divider } from '@rneui/themed';
 import Iconm from 'react-native-vector-icons/MaterialCommunityIcons';
 import ReactNativeBlobUtil from 'react-native-blob-util';
-import mqtt from "precompiled-mqtt";
+import MQTT from 'sp-react-native-mqtt';
 
 function RequestImageScreen({navigation}): React.JSX.Element {
     
@@ -36,7 +36,43 @@ function RequestImageScreen({navigation}): React.JSX.Element {
     const [link, setLink] = useState('');
     const [response, setResponse] = useState('');
     const [timeoutCounter, setTimeoutCounter] = useState(0);
+    let example = 'https://images.pexels.com/photos/417074/pexels-photo-417074.jpeg';
+
+    useEffect(() => {
+      MQTT.createClient({
+        uri: 'mqtt://mqtt3.thingspeak.com:1883',
+        clientId: 'ICELOCgXByY8CjwbGjETJzU',
+        user: 'ICELOCgXByY8CjwbGjETJzU',
+        pass: 'w5Z5zNiCmGsZTG7TplxVQcaP',
+        auth: true,
   
+      }).then(function(client) {
+      
+        client.on('closed', function() {
+          console.log('mqtt.event.closed');
+        });
+      
+        client.on('error', function(msg) {
+          console.log('mqtt.event.error', msg);
+        });
+      
+        client.on('message', function(msg) {
+          console.log('mqtt.event.message', msg);
+          setResponse(msg["data"]);
+          fetch('https://api.thingspeak.com/update?api_key=76ATXSZ223T5OQ6D&field6=NR');
+        });
+      
+        client.on('connect', function() {
+          console.log('connected');
+          client.subscribe('channels/2429193/subscribe/fields/field6', 0);
+        });
+      
+        client.connect();
+      }).catch(function(err){
+        console.log(err);
+      });
+    }, [])
+
     useEffect(() => {
     ReactNativeBlobUtil.fetch('GET', 'https://images.pexels.com/photos/417074/pexels-photo-417074.jpeg', { Authorization: 'Bearer access-token...',})
         .then((res) => {
@@ -60,18 +96,7 @@ function RequestImageScreen({navigation}): React.JSX.Element {
     const getLink = () =>{
 
       fetch('https://api.thingspeak.com/update?api_key=76ATXSZ223T5OQ6D&field6=IR');
-      setTimeout(() => {
 
-        fetch('https://api.thingspeak.com/channels/2429193/fields/6/last.json').then(x => x.json()).then(json => setResponse(json.field6));
-        if (response.split(' ').length === 2){
-          if (response.split(' ')[0] === '200'){
-            setLink(response.split(' ')[1]);
-            downloadImage();
-          }
-        }
-        fetch('https://api.thingspeak.com/update?api_key=76ATXSZ223T5OQ6D&field6=NR');
-
-      }, 5000);
     };
 
     function downloadImage(){
