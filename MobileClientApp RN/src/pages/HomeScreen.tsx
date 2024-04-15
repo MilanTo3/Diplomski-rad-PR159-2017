@@ -26,6 +26,7 @@ import Iconk from 'react-native-vector-icons/FontAwesome6';
 import Iconm from 'react-native-vector-icons/MaterialCommunityIcons';
 import Collapsible from 'react-native-collapsible';
 import { withNavigationFocus } from 'react-navigation';
+import NetInfo from "@react-native-community/netinfo";
 
 import { Table, TableWrapper, Row, Rows } from 'react-native-table-component';
 import mqtt from 'precompiled-mqtt';
@@ -49,6 +50,8 @@ function HomeScreen({navigation}): React.JSX.Element {
   const [uvModalVisible, setUVModalVisible] = useState(false);
   const [ttData, setttData] = useState({ temperature: 0, airH: '0', airQ: '0', soilH: '0', uvIndex: '0', createdAt: '' });
   const [airQDef, setairQDef] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
+  const [text, setText] = useState('');
 
   const airQDefDet = () => {
     if (Number(ttData.airQ) >= 0 && Number(ttData.airQ) <= 33){
@@ -101,6 +104,12 @@ function HomeScreen({navigation}): React.JSX.Element {
   }
   
   useEffect(() => {
+    NetInfo.fetch().then(state => {
+      if(!state.isConnected){
+        setText("Proverite vašu internet konekciju.");
+        setModalVisible(true);
+      }
+    });
   
     if(navigation.isFocused()){
       console.log('running');
@@ -114,6 +123,26 @@ function HomeScreen({navigation}): React.JSX.Element {
   
     return (
         <ScrollView contentInsetAdjustmentBehavior="automatic">
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => {
+            setModalVisible(!modalVisible);
+          }}>
+            <View style={styles.centeredView}>
+              <LinearGradient start={{x: 0, y: 0.5}} end={{x: 0.3, y: 1.0}} colors={['rgba(2, 48, 71 ,1)', '#8ecae6']} style={styles.modalView}>
+                <View style={styles.modalTextView}>
+                  <Text style={styles.labela}>{text}</Text>
+                </View>
+                <View style={{marginTop: 21}}>
+                  <TouchableOpacity onPress={() => setModalVisible(!modalVisible)} style={styles.buttonStyle2}>
+                    <Text style={styles.btnText}>Zatvori</Text>
+                  </TouchableOpacity>
+                </View>
+              </LinearGradient>
+            </View>
+        </Modal>
         <Modal
           animationType="slide"
           transparent={true}
@@ -562,6 +591,19 @@ function HomeScreen({navigation}): React.JSX.Element {
     text: { margin: 2, textAlign: 'center', fontWeight: 'bold' },
     wrapper: { flexDirection: 'row' },
     titlek: { flex: 1, backgroundColor: '#f6f8fa' },
+    buttonStyle2:{
+      backgroundColor: '#023047',
+      width: 140,
+      maxHeight: 50,
+      justifyContent: 'center', //Centered vertically
+      alignItems: 'center', //Centered horizontally
+      flex:1,
+      borderRadius: 5,
+    },
+    modalTextView:{
+      justifyContent: 'center',
+      alignItems: 'center'
+    }
   
 });
   

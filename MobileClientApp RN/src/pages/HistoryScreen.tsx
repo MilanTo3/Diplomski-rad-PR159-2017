@@ -32,7 +32,7 @@ import Icon from 'react-native-vector-icons/Entypo';
 import {LineChart, BarChart} from 'react-native-chart-kit';
 import Iconm from 'react-native-vector-icons/MaterialCommunityIcons';
 import DatePicker from 'react-native-date-picker';
-import {useNetInfo} from "@react-native-community/netinfo";
+import NetInfo from "@react-native-community/netinfo";
 
 const windowWidth = Dimensions.get('window').width - 94;
 const icon = <Icon style={{margin: 11, color: 'rgba(2, 48, 71 ,1)'}} name="chevron-down" size={20} color="#8ecae6" />;
@@ -59,11 +59,23 @@ function HistoryScreen({navigation}): React.JSX.Element {
   const [correlationUnit, setCorrelationUnit] = useState("");
   const [pickedDate, setPickedDate] = useState(new Date());
   const [open, setOpen] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [text, setText] = useState('');
 
   const opcije = ["Temperatura", "Vlažnost vazduha", "Vlažnost zemljišta", "Kvalitet vazduha", "UV indeks"];
   const labelUnits = ["°C", "%", "%", "ppm", ""]
   const range = ["Danas", "Ove nedelje", "Ovog meseca", "Izaberite datum"];
-  const netInfo = useNetInfo();
+
+  useEffect(() => {
+    
+    NetInfo.fetch().then(state => {
+      if(!state.isConnected){
+        setText("Proverite vašu internet konekciju.");
+        setModalVisible(true);
+      }
+    });
+
+  }, []);
 
   useEffect(() => {
 
@@ -186,6 +198,26 @@ function HistoryScreen({navigation}): React.JSX.Element {
 
   return (
     <ScrollView style={{flex:1}}>
+      <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => {
+            setModalVisible(!modalVisible);
+          }}>
+            <View style={styles.centeredView}>
+              <LinearGradient start={{x: 0, y: 0.5}} end={{x: 0.3, y: 1.0}} colors={['rgba(2, 48, 71 ,1)', '#8ecae6']} style={styles.modalView}>
+                <View style={styles.modalTextView}>
+                  <Text style={styles.labela}>{text}</Text>
+                </View>
+                <View style={{marginTop: 21}}>
+                  <TouchableOpacity onPress={() => setModalVisible(!modalVisible)} style={styles.buttonStyle2}>
+                    <Text style={styles.btnText}>Zatvori</Text>
+                  </TouchableOpacity>
+                </View>
+              </LinearGradient>
+            </View>
+          </Modal>
       <LinearGradient style={{flex:1}} start={{x: 0, y: 0.5}} end={{x: 0.3, y: 1.0}} colors={['rgba(2, 48, 71 ,0.9)', 'rgba(251, 133, 0, 0.9)']}>
         <TouchableOpacity onPress={() => navigation.navigate('home')} style={styles.buttonStyle}>
           <Iconm style={{color: 'white'}} name="keyboard-backspace" size={24} color="white" />
@@ -351,6 +383,51 @@ const styles = StyleSheet.create({
   },
   unitView:{
     alignItems: "center"
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)'
+  },
+modalView: {
+    margin: 20,
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.5,
+    shadowRadius: 4,
+    elevation: 5,
+ 
+  },
+  buttonStyle2:{
+    backgroundColor: '#023047',
+    width: 140,
+    maxHeight: 50,
+    justifyContent: 'center', //Centered vertically
+    alignItems: 'center', //Centered horizontally
+    flex:1,
+    borderRadius: 5,
+  },
+  modalTextView:{
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  btnText:{
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    fontFamily: 'sans-serif',
+    margin: 5,
+    textShadowColor: 'black',
+    textShadowRadius: 10,
+    textShadowOffset: {width: -0.1, height: 0.1},
+    
   }
 
 });

@@ -27,7 +27,7 @@ import { Divider } from '@rneui/themed';
 import Iconm from 'react-native-vector-icons/MaterialCommunityIcons';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import MQTT from 'sp-react-native-mqtt';
-import {useNetInfo} from "@react-native-community/netinfo";
+import NetInfo from "@react-native-community/netinfo";
 
 function RequestImageScreen({navigation}): React.JSX.Element {
     
@@ -37,7 +37,6 @@ function RequestImageScreen({navigation}): React.JSX.Element {
     const [link, setLink] = useState('');
     const [response, setResponse] = useState('');
     const [requestPayload, setRequestPayload] = useState(0);
-    const netInfo = useNetInfo();
     let example = 'https://images.pexels.com/photos/417074/pexels-photo-417074.jpeg';
 
     useEffect(() => {
@@ -79,10 +78,12 @@ function RequestImageScreen({navigation}): React.JSX.Element {
     }, [response]);
 
     useEffect(() => {
-      if(!netInfo.isConnected){
-        setText("Proverite vašu internet konekciju.");
-        setModalVisible(true);
-      }
+      NetInfo.fetch().then(state => {
+        if(!state.isConnected){
+          setText("Proverite vašu internet konekciju.");
+          setModalVisible(true);
+        }
+      });
       
       MQTT.createClient({
         uri: 'mqtt://mqtt3.thingspeak.com:1883',
