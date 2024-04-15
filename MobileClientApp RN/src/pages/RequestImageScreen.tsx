@@ -27,6 +27,7 @@ import { Divider } from '@rneui/themed';
 import Iconm from 'react-native-vector-icons/MaterialCommunityIcons';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import MQTT from 'sp-react-native-mqtt';
+import {useNetInfo} from "@react-native-community/netinfo";
 
 function RequestImageScreen({navigation}): React.JSX.Element {
     
@@ -35,10 +36,54 @@ function RequestImageScreen({navigation}): React.JSX.Element {
     const [text, setText] = useState('');
     const [link, setLink] = useState('');
     const [response, setResponse] = useState('');
-    const [timeoutCounter, setTimeoutCounter] = useState(0);
+    const [requestPayload, setRequestPayload] = useState(0);
+    const netInfo = useNetInfo();
     let example = 'https://images.pexels.com/photos/417074/pexels-photo-417074.jpeg';
 
     useEffect(() => {
+
+      let reslink;
+      console.log(response);
+      if(response !== ''){
+        reslink = response.split(' ');
+        if(reslink[0] == '200'){
+          setLink(reslink[1]);
+          
+          ReactNativeBlobUtil.fetch('GET', reslink[1], { Authorization: 'Bearer access-token...',})
+          .then((res) => {
+              let status = res.info().status;
+              console.log("status: " + status);
+  
+              if (status == 200) {
+                  // the conversion is done in native code
+                  let base64Str = res.base64();
+                  setImage(`data:image/png;base64,${base64Str}`);
+              }
+              else {
+                  // handle other status codes
+              }
+          })
+          // Something went wrong:
+          .catch((errorMessage, statusCode) => {
+              setText("Greška prilikom preuzimanja slike. Proverite Vašu internet konekciju.");
+              console.log(errorMessage, statusCode);
+              setModalVisible(true);
+          })
+
+        } else {
+          setText(reslink[1]);
+          setModalVisible(true);
+        }
+      }
+
+    }, [response]);
+
+    useEffect(() => {
+      if(!netInfo.isConnected){
+        setText("Proverite vašu internet konekciju.");
+        setModalVisible(true);
+      }
+      
       MQTT.createClient({
         uri: 'mqtt://mqtt3.thingspeak.com:1883',
         clientId: 'ICELOCgXByY8CjwbGjETJzU',
@@ -58,8 +103,11 @@ function RequestImageScreen({navigation}): React.JSX.Element {
       
         client.on('message', function(msg) {
           console.log('mqtt.event.message', msg);
-          setResponse(msg["data"]);
-          fetch('https://api.thingspeak.com/update?api_key=76ATXSZ223T5OQ6D&field6=NR');
+          if(msg["data"] !== "IR" && msg["data"] !== "NR"){
+            fetch('https://api.thingspeak.com/update?api_key=76ATXSZ223T5OQ6D&field6=NR');
+            setResponse(msg["data"]);
+          }
+          
         });
       
         client.on('connect', function() {
@@ -71,10 +119,8 @@ function RequestImageScreen({navigation}): React.JSX.Element {
       }).catch(function(err){
         console.log(err);
       });
-    }, [])
-
-    useEffect(() => {
-    ReactNativeBlobUtil.fetch('GET', 'https://images.pexels.com/photos/417074/pexels-photo-417074.jpeg', { Authorization: 'Bearer access-token...',})
+    
+      ReactNativeBlobUtil.fetch('GET', 'https://images.pexels.com/photos/417074/pexels-photo-417074.jpeg', { Authorization: 'Bearer access-token...',})
         .then((res) => {
             let status = res.info().status;
 
@@ -95,32 +141,26 @@ function RequestImageScreen({navigation}): React.JSX.Element {
 
     const getLink = () =>{
 
-      fetch('https://api.thingspeak.com/update?api_key=76ATXSZ223T5OQ6D&field6=IR');
+      fetch('https://api.thingspeak.com/update?api_key=76ATXSZ223T5OQ6D&field6=IR').then(x => x.json()).then(json => setRequestPayload(json));
+      if(requestPayload === 0){
+        console.log(requestPayload);
+        setText("Thingspeak API je trenutno zauzet. Molimo pokušajte ponovo za 15 sekundi.");
+        setModalVisible(true);
+      } else {
+        setResponse('');
+
+        let responsetimeout = undefined;
+        if(responsetimeout !== undefined) { clearTimeout(responsetimeout); }
+
+        responsetimeout = setTimeout(() => {
+          if(response === ''){
+            setText("Odgovor nije primljen, proverite da li je uređaj uključen.");
+            setModalVisible(true);
+          }
+        }, 20000);
+      }
 
     };
-
-    function downloadImage(){
-
-      // Poll until i get a link <l>imgur.com/asdahsdkjh
-      ReactNativeBlobUtil.fetch('GET', link, { Authorization: 'Client-ID d45163fade7f03b',})
-        .then((res) => {
-            let status = res.info().status;
-
-            if (status == 200) {
-                // the conversion is done in native code
-                let base64Str = res.base64();
-                setImage(`data:image/png;base64,${base64Str}`);
-            }
-            else {
-                // handle other status codes
-            }
-        })
-        // Something went wrong:
-        .catch((errorMessage, statusCode) => {
-            setText("Greška prilikom preuzimanja slike. Proverite Vašu internet konekciju.");
-            setModalVisible(true);
-        });
-    }
 
     function saveImage(){
         let dirs = ReactNativeBlobUtil.fs.dirs;
@@ -128,7 +168,7 @@ function RequestImageScreen({navigation}): React.JSX.Element {
             // response data will be saved to this path if it has access right.
             path: dirs.LegacyDownloadDir + '/image.jpg',
         })
-        .fetch('GET', link, { Authorization: 'Client-ID d45163fade7f03b',})
+        .fetch('GET', link)
         .then((res) => {
             // the path should be dirs.DocumentDir + 'path-to-file.anything'
             console.log('The file saved to ', res.path());
@@ -194,12 +234,6 @@ const styles = StyleSheet.create({
         flex:1,
         borderRadius: 5,
     },
-    graphView:{
-        margin: 10,
-        marginTop: 20,
-        padding: 0,
-        maxHeight: Dimensions.get('window').height/2.34,
-    },
     imageView:{
         margin: 17,
         alignItems: 'center',
@@ -235,6 +269,8 @@ const styles = StyleSheet.create({
         color: 'white',
         textShadowColor: 'black',
         textShadowRadius: 8,
+        justifyContent: 'center',
+        textAlign: 'center'
     
     },
     opButtons:{

@@ -32,6 +32,7 @@ import Icon from 'react-native-vector-icons/Entypo';
 import {LineChart, BarChart} from 'react-native-chart-kit';
 import Iconm from 'react-native-vector-icons/MaterialCommunityIcons';
 import DatePicker from 'react-native-date-picker';
+import {useNetInfo} from "@react-native-community/netinfo";
 
 const windowWidth = Dimensions.get('window').width - 94;
 const icon = <Icon style={{margin: 11, color: 'rgba(2, 48, 71 ,1)'}} name="chevron-down" size={20} color="#8ecae6" />;
@@ -62,6 +63,7 @@ function HistoryScreen({navigation}): React.JSX.Element {
   const opcije = ["Temperatura", "Vlažnost vazduha", "Vlažnost zemljišta", "Kvalitet vazduha", "UV indeks"];
   const labelUnits = ["°C", "%", "%", "ppm", ""]
   const range = ["Danas", "Ove nedelje", "Ovog meseca", "Izaberite datum"];
+  const netInfo = useNetInfo();
 
   useEffect(() => {
 
