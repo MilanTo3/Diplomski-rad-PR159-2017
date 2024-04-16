@@ -26,6 +26,7 @@ import Iconk from 'react-native-vector-icons/FontAwesome6';
 import Iconm from 'react-native-vector-icons/MaterialCommunityIcons';
 import Collapsible from 'react-native-collapsible';
 import { withNavigationFocus } from 'react-navigation';
+import NetInfo from "@react-native-community/netinfo";
 
 import { Table, TableWrapper, Row, Rows } from 'react-native-table-component';
 import mqtt from 'precompiled-mqtt';
@@ -49,19 +50,21 @@ function HomeScreen({navigation}): React.JSX.Element {
   const [uvModalVisible, setUVModalVisible] = useState(false);
   const [ttData, setttData] = useState({ temperature: 0, airH: '0', airQ: '0', soilH: '0', uvIndex: '0', createdAt: '' });
   const [airQDef, setairQDef] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
+  const [text, setText] = useState('');
 
   const airQDefDet = () => {
-    if(Number(ttData.airQ) >= 0 && Number(ttData.airQ) <= 33){
+    if (Number(ttData.airQ) >= 0 && Number(ttData.airQ) <= 33){
       setairQDef('Veoma dobar');
-    }else if(Number(ttData.airQ) >= 34 && Number(ttData.airQ) <= 66){
+    } else if(Number(ttData.airQ) >= 34 && Number(ttData.airQ) <= 66){
       setairQDef('Dobar');
-    }else if(Number(ttData.airQ) >= 67 && Number(ttData.airQ) <= 99){
+    } else if(Number(ttData.airQ) >= 67 && Number(ttData.airQ) <= 99){
       setairQDef('Prihvatljiv');
-    }else if(Number(ttData.airQ) >= 100 && Number(ttData.airQ) <= 149){
+    } else if(Number(ttData.airQ) >= 100 && Number(ttData.airQ) <= 149){
       setairQDef('Loš');
-    }else if(Number(ttData.airQ) >= 150 && Number(ttData.airQ) <= 200){
+    } else if(Number(ttData.airQ) >= 150 && Number(ttData.airQ) <= 200){
       setairQDef('Veoma Loš');
-    }else if(Number(ttData.airQ) >= 201){
+    } else if(Number(ttData.airQ) >= 201){
       setairQDef('Izuzetno Loš');
     }
   }
@@ -92,15 +95,29 @@ function HomeScreen({navigation}): React.JSX.Element {
       delay:100
     }).start();};
 
+  let settingData = function(json) {
+    console.log(json);
+    if(json.feeds[0].field1 !== null){
+      console.log("setting");
+      setttData({temperature: Number(json.feeds[0].field1), airH: json.feeds[0].field2, airQ: json.feeds[0].field4, soilH: json.feeds[0].field3, uvIndex: json.feeds[0].field5, createdAt: json.feeds[0].created_at});
+    }
+  };
+  
   let intervalFetchFunc = function() {
-    fetch('https://api.thingspeak.com/channels/2429193/feeds.json?api_key=ICM2FPX89P99HRT1&results=1&timezone=Europe/Belgrade').then(x => x.json()).then(json => setttData({temperature: Number(json.feeds[0].field1), airH: json.feeds[0].field2, airQ: json.feeds[0].field4, soilH: json.feeds[0].field3, uvIndex: json.feeds[0].field5, createdAt: json.feeds[0].created_at}));
+    fetch('https://api.thingspeak.com/channels/2429193/feeds.json?api_key=ICM2FPX89P99HRT1&results=1&timezone=Europe/Belgrade').then(x => x.json()).then(json => settingData(json));
     airQDefDet();
     fadeAnim.resetAnimation();
     fadeIn();
     
-  }
+  };
   
   useEffect(() => {
+    NetInfo.fetch().then(state => {
+      if(!state.isConnected){
+        setText("Proverite vašu internet konekciju.");
+        setModalVisible(true);
+      }
+    });
   
     if(navigation.isFocused()){
       console.log('running');
@@ -114,6 +131,26 @@ function HomeScreen({navigation}): React.JSX.Element {
   
     return (
         <ScrollView contentInsetAdjustmentBehavior="automatic">
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => {
+            setModalVisible(!modalVisible);
+          }}>
+            <View style={styles.centeredView}>
+              <LinearGradient start={{x: 0, y: 0.5}} end={{x: 0.3, y: 1.0}} colors={['rgba(2, 48, 71 ,1)', '#8ecae6']} style={styles.modalView}>
+                <View style={styles.modalTextView}>
+                  <Text style={styles.labela}>{text}</Text>
+                </View>
+                <View style={{marginTop: 21}}>
+                  <TouchableOpacity onPress={() => setModalVisible(!modalVisible)} style={styles.buttonStyle2}>
+                    <Text style={styles.btnText}>Zatvori</Text>
+                  </TouchableOpacity>
+                </View>
+              </LinearGradient>
+            </View>
+        </Modal>
         <Modal
           animationType="slide"
           transparent={true}
@@ -195,7 +232,7 @@ function HomeScreen({navigation}): React.JSX.Element {
                 </View>
                 <Text style={styles.title2}>Poslednje ažurirano: </Text>
                 <Animated.View style={[{opacity: fadeAnim}]}>
-                  <Text style={styles.title2}>{ttData.createdAt.replace('T', ' ').replaceAll('-', '.').replace('+01:00', '')}</Text>
+                  <Text style={styles.title2}>{ttData.createdAt.replace('T', ' ').replaceAll('-', '.').replace('+02:00', '')}</Text>
                 </Animated.View>
   
             </LinearGradient>
@@ -562,6 +599,19 @@ function HomeScreen({navigation}): React.JSX.Element {
     text: { margin: 2, textAlign: 'center', fontWeight: 'bold' },
     wrapper: { flexDirection: 'row' },
     titlek: { flex: 1, backgroundColor: '#f6f8fa' },
+    buttonStyle2:{
+      backgroundColor: '#023047',
+      width: 140,
+      maxHeight: 50,
+      justifyContent: 'center', //Centered vertically
+      alignItems: 'center', //Centered horizontally
+      flex:1,
+      borderRadius: 5,
+    },
+    modalTextView:{
+      justifyContent: 'center',
+      alignItems: 'center'
+    }
   
 });
   
