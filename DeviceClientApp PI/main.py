@@ -62,7 +62,7 @@ def loop():
     writeRecords()
     sendRecords()
 
-    time.sleep(60)
+    time.sleep(180)
 
 def getRecords():
 
@@ -83,30 +83,36 @@ def sendRecords():
   gsmLock.acquire()
   sim7600.publishData("field1=" + str(Record["temperatura"]) + "&field2=" + str(Record["vlaznost_vazduha"]) + "&field3=" + str(Record["vlaznost_zemljista"]) 
                       + "&field4=" + str(Record["kvalitet_vazduha"]) + "&field5=" + str(Record["uv_zracenje"]))
+  print('released')
   gsmLock.release()
 
 def getResponseData(ser, lock):
   
   while True:
     while ser.in_waiting:
-      lock.acquire()
+      gsmLock.acquire()
       c:str = ser.read_all().decode()
-      lock.release()
-      if "CMQTTRXPAYLOAD" in c:
+      print("reading:" + c)
+      gsmLock.release()
+      if "RXPAYLOAD" in c:
         k = c.split('\r\n')
-        filter = [x for x in k if x.startswith('+CMQTTRXPAYLOAD')]
+        filter = [x for x in k if x.startswith('+CMQTTRXPAY')]
         if filter.count != 0:
           payloadIndex = k.index(filter[0]) + 1
           payload = k[payloadIndex]
           print('Payload is: '+ payload)
           if(payload == 'IR'): # if theres a image request:
             camController.takePicture()
-            imageManager.JPEGSaveWithTargetSize(Image.open(path / 'capture.jpg'), 'compressedcapture.jpg', 80000)
+            imageManager.JPEGSaveWithTargetSize(Image.open(path / 'capture.jpg'), 'compressedcapture.jpg', 90000)
             base64image = imageManager.convertToBase64()
-            lock.acquire()
+            gsmLock.acquire()
             sim7600.httpPostImageToImgur(base64image)
-            lock.release()
-    time.sleep(0.5)
+            gsmLock.release()
+      elif "CONNLOST" in c:
+        gsmLock.acquire()
+        sim7600.setup()
+        gsmLock.release()
+    time.sleep(1)
 
 def sendSnapshot(base64image):
   sim7600.httpPostImageToImgur(base64image)

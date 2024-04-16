@@ -6,7 +6,7 @@ class CameraController:
     camera = Picamera2()
 
     def __init__(self) -> None:
-        config = self.camera.create_still_configuration(main={"size": (2592, 1944)})
+        config = self.camera.create_still_configuration(main={"size": (800, 600)})
         self.camera.configure(config)
 
     def takePicture(self):

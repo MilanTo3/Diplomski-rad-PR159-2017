@@ -13,6 +13,7 @@ class Sim7600Manager:
     subThreadStart = None
     uploadImage = 'https://api.imgur.com/3/image'
     imgurKey = ''
+    subbed = False
 
     def __init__(self, client_id, server, user, password, pubi, subi, key, subThread):
         
@@ -80,10 +81,9 @@ class Sim7600Manager:
         for resp in responses:
             if "+CMQTTSUB: 0," in resp:
                 status = int(resp.split("+CMQTTSUB: 0,")[1])
-                if status == 0:
+                if status == 0 and self.subbed == False:
                     self.subThreadStart(self.ser)
-            elif "ERROR" in resp:
-                self.setup()
+                    self.subbed = True
 
     def publishData(self, updateMsn):
         dataLength = str(len(self.pub))
@@ -108,7 +108,7 @@ class Sim7600Manager:
         self.input_message('AT+HTTPDATA={},400'.format(len(f)), f)
         self.SentMessage('ATE1\r\n')
         self.SentMessage('AT+HTTPACTION=1\r\n')
-        time.sleep(3)
+        time.sleep(15)
         self.getResponse()
         time.sleep(0.5)
         self.SentMessage('AT+HTTPTERM\r\n')
