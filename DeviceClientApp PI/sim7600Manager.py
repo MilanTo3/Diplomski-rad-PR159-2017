@@ -9,7 +9,7 @@ class Sim7600Manager:
     password = ""
     pub = ""
     sub = ""
-    ser = serial.Serial('/dev/ttyS0', baudrate=921600, timeout=1) # check this!
+    ser = serial.Serial('/dev/ttyS0', baudrate=115200, timeout=1) # check this!
     subThreadStart = None
     uploadImage = 'https://api.imgur.com/3/image'
     imgurKey = ''
@@ -58,12 +58,7 @@ class Sim7600Manager:
         responses = response.split('\r\n')
         print(response)
         for resp in responses:
-            if "+CREG: 0," in resp:
-                status = int(resp.split("+CREG: 0,")[1]) # Check if connected to the network.
-                if status == 6:
-                    isSerial2Available = False
-                    print("\nNetWork Connected")
-            elif "+CMQTTCONNECT: 0," in resp:
+            if "+CMQTTCONNECT: 0," in resp:
                 status = int(resp.split("+CMQTTCONNECT: 0,")[1]) # Check if the client is connected.
                 if status == 0:
                     isSerial2Available = False
@@ -87,6 +82,8 @@ class Sim7600Manager:
                 status = int(resp.split("+CMQTTSUB: 0,")[1])
                 if status == 0:
                     self.subThreadStart(self.ser)
+            elif "ERROR" in resp:
+                self.setup()
 
     def publishData(self, updateMsn):
         dataLength = str(len(self.pub))
@@ -111,7 +108,7 @@ class Sim7600Manager:
         self.input_message('AT+HTTPDATA={},400'.format(len(f)), f)
         self.SentMessage('ATE1\r\n')
         self.SentMessage('AT+HTTPACTION=1\r\n')
-        time.sleep(2)
+        time.sleep(3)
         self.getResponse()
         time.sleep(0.5)
         self.SentMessage('AT+HTTPTERM\r\n')
@@ -124,7 +121,7 @@ class Sim7600Manager:
         responses = response.split('\r\n')
 
         status = [x for x in responses if x.startswith('{"status"')]
-        if status.count != 0:
+        if len(status) != 0:
             responseObj = json.loads(status[0])
             status = responseObj["status"]
             link = responseObj["data"]["link"]

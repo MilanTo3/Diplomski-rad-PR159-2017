@@ -106,7 +106,7 @@ def getResponseData(ser, lock):
             lock.acquire()
             sim7600.httpPostImageToImgur(base64image)
             lock.release()
-    time.sleep(1)
+    time.sleep(0.5)
 
 def sendSnapshot(base64image):
   sim7600.httpPostImageToImgur(base64image)
