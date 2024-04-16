@@ -96,18 +96,16 @@ function HomeScreen({navigation}): React.JSX.Element {
     }).start();};
 
   let settingData = function(json) {
-    console.log(json);
     if(json.feeds[0].field1 !== null){
-      console.log("setting");
       setttData({temperature: Number(json.feeds[0].field1), airH: json.feeds[0].field2, airQ: json.feeds[0].field4, soilH: json.feeds[0].field3, uvIndex: json.feeds[0].field5, createdAt: json.feeds[0].created_at});
     }
   };
   
   let intervalFetchFunc = function() {
     fetch('https://api.thingspeak.com/channels/2429193/feeds.json?api_key=ICM2FPX89P99HRT1&results=1&timezone=Europe/Belgrade').then(x => x.json()).then(json => settingData(json));
-    airQDefDet();
     fadeAnim.resetAnimation();
     fadeIn();
+    airQDefDet();
     
   };
   
