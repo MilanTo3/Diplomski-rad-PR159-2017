@@ -36,43 +36,7 @@ function RequestImageScreen({navigation}): React.JSX.Element {
     const [text, setText] = useState('');
     const [link, setLink] = useState('');
     const [response, setResponse] = useState('');
-    const [requestPayload, setRequestPayload] = useState(0);
     let example = 'https://images.pexels.com/photos/417074/pexels-photo-417074.jpeg';
-
-    useEffect(() => {
-
-      if(response !== ''){
-        let reslink = response.split(' ');
-        if(reslink[0] == '200'){
-          setLink(reslink[1]);
-          console.log('link:' + reslink[1]);
-          
-          ReactNativeBlobUtil.fetch('GET', reslink[1], { Authorization: 'Bearer access-token...',})
-          .then((res) => {
-              let status = res.info().status;
-  
-              if (status == 200) {
-                  // the conversion is done in native code
-                  let base64Str = res.base64();
-                  setImage(`data:image/png;base64,${base64Str}`);
-              }
-              else {
-                  // handle other status codes
-              }
-          })
-          // Something went wrong:
-          .catch((errorMessage, statusCode) => {
-              setText("Greška prilikom preuzimanja slike. Proverite Vašu internet konekciju.");
-              setModalVisible(true);
-          })
-
-        } else {
-          setText(reslink[1]);
-          setModalVisible(true);
-        }
-      }
-
-    }, [response]);
 
     useEffect(() => {
       NetInfo.fetch().then(state => {
@@ -89,20 +53,21 @@ function RequestImageScreen({navigation}): React.JSX.Element {
         pass: 'nN4J51b1GOGqcun8qXmuiahK',
         auth: true,
   
-      }).then(async function(client) {
+      }).then(function(client) {
       
         client.on('closed', function() {
           console.log('mqtt.event.closed');
         });
       
-        client.on('error', async function(msg) {
+        client.on('error', function(msg) {
           console.log('mqtt.event.error', msg);
         });
       
         client.on('message', function(msg) {
           console.log('mqtt.event.message', msg);
+          console.log('here1')
           if(msg["data"] !== "IR"){
-            console.log(msg["data"])
+            console.log('here2');
             setResponse(msg["data"]);
           }
           
@@ -128,9 +93,6 @@ function RequestImageScreen({navigation}): React.JSX.Element {
                 let base64Str = res.base64();
                 setImage(`data:image/png;base64,${base64Str}`);
             }
-            else {
-                // handle other status codes
-            }
         })
         // Something went wrong:
         .catch((errorMessage, statusCode) => {
@@ -138,27 +100,63 @@ function RequestImageScreen({navigation}): React.JSX.Element {
             setModalVisible(true);
         })}, []);
 
+    useEffect(() => {
+
+      console.log('response effect triggered: ' + response);
+      if(response !== ''){
+        let reslink = response.split(' ');
+        if(reslink[0] == '200'){
+          setLink(reslink[1]);
+          console.log('link:' + reslink[1]);
+              
+          ReactNativeBlobUtil.fetch('GET', reslink[1], { Authorization: 'Bearer access-token...',})
+          .then((res) => {
+            let status = res.info().status;
+      
+            if (status == 200) {
+                      // the conversion is done in native code
+              let base64Str = res.base64();
+              setImage(`data:image/png;base64,${base64Str}`);
+            }
+              })
+              // Something went wrong:
+              .catch((errorMessage, statusCode) => {
+                  setText("Greška prilikom preuzimanja slike. Proverite Vašu internet konekciju.");
+                  setModalVisible(true);
+              })
+    
+            } else {
+              setText(reslink[1]);
+              setModalVisible(true);
+            }
+          }
+    
+    }, [response]);
+
     const getLink = () =>{
 
-      fetch('https://api.thingspeak.com/update?api_key=76ATXSZ223T5OQ6D&field6=IR').then(x => x.json()).then(json => setRequestPayload(json));
-      console.log(requestPayload);
-      if(requestPayload == 0){
-        setText("Thingspeak api trenutno zauzet, pokušajte ponovo za 15 sekundi.");
-        setModalVisible(true);
-      }
+      fetch('https://api.thingspeak.com/update?api_key=76ATXSZ223T5OQ6D&field6=IR').then(x => x.json()).then(json => {
 
-      setResponse('');
+        if(json == 0){
+          setText("Thingspeak api trenutno zauzet, pokušajte ponovo za 15 sekundi.");
+          setModalVisible(true);
+        } else {
 
-      let responsetimeout = undefined;
-      if(responsetimeout !== undefined) { clearTimeout(responsetimeout); }
+          setResponse('');
 
-      responsetimeout = setTimeout(() => {
-      if(response === ''){
-        setText("Odgovor nije primljen, proverite da li je uređaj uključen.");
-        setModalVisible(true);
-      }
-      
-    }, 60000);
+          let responsetimeout = undefined;
+          if(responsetimeout !== undefined) { clearTimeout(responsetimeout); }
+
+          responsetimeout = setTimeout(() => {
+          if(response === ''){
+            setText("Odgovor nije primljen, proverite da li je uređaj uključen.");
+            setModalVisible(true);
+          }
+        
+          }, 90000);
+        }
+
+      });
 
     };
 
