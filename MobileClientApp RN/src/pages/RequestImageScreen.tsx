@@ -39,6 +39,7 @@ function RequestImageScreen({navigation}): React.JSX.Element {
     const [response, setResponse] = useState('');
     const [barVisible, setBarVisible] = useState(false);
     const windowWidth = Dimensions.get('window').width;
+    const [buttonDisabled, setButtonDisabled] = useState(false);
 
     useEffect(() => {
       NetInfo.fetch().then(state => {
@@ -98,7 +99,7 @@ function RequestImageScreen({navigation}): React.JSX.Element {
         .catch((errorMessage, statusCode) => {
             setText("Greška prilikom preuzimanja slike. Proverite Vašu internet konekciju.");
             setModalVisible(true);
-        })}, []);
+    })}, []);
 
     useEffect(() => {
 
@@ -117,17 +118,22 @@ function RequestImageScreen({navigation}): React.JSX.Element {
               let base64Str = res.base64();
               setImage(`data:image/png;base64,${base64Str}`);
               setBarVisible(false);
+              setButtonDisabled(false);
             }
               })
               // Something went wrong:
               .catch((errorMessage, statusCode) => {
                   setText("Greška prilikom preuzimanja slike. Proverite Vašu internet konekciju.");
                   setModalVisible(true);
+                  setBarVisible(false);
+                  setButtonDisabled(false);
               })
     
             } else {
               setText("Greška, nije moguće povezati se sa imgur.com");
               setModalVisible(true);
+              setBarVisible(false);
+              setButtonDisabled(false);
             }
           }
     
@@ -144,6 +150,7 @@ function RequestImageScreen({navigation}): React.JSX.Element {
 
           setResponse('');
           setBarVisible(true);
+          setButtonDisabled(true);
 
           let responsetimeout = undefined;
           if(responsetimeout !== undefined) { clearTimeout(responsetimeout); }
@@ -153,6 +160,7 @@ function RequestImageScreen({navigation}): React.JSX.Element {
             setText("Odgovor nije primljen, proverite da li je uređaj uključen.");
             setModalVisible(true);
             setBarVisible(false);
+            setButtonDisabled(false);
           }
         
           }, 90000);
@@ -216,7 +224,7 @@ function RequestImageScreen({navigation}): React.JSX.Element {
             {barVisible ? <Progress.Bar indeterminate={true} borderWidth={0} width={windowWidth}/> : null }
 
             <View style={styles.buttonWrapper}>
-                <TouchableOpacity style={styles.opButtons} onPress={() => getLink()}><Text style={styles.btnText}>Zatraži sliku</Text></TouchableOpacity>
+                <TouchableOpacity style={styles.opButtons} onPress={() => getLink()} disabled={buttonDisabled}><Text style={styles.btnText}>Zatraži sliku</Text></TouchableOpacity>
                 <TouchableOpacity style={styles.opButtons} onPress={() => saveImage()}><Text style={styles.btnText}>Sačuvaj sliku na uređaj</Text></TouchableOpacity>
             </View>
         </LinearGradient>

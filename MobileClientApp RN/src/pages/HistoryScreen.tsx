@@ -33,6 +33,7 @@ import {LineChart, BarChart} from 'react-native-chart-kit';
 import Iconm from 'react-native-vector-icons/MaterialCommunityIcons';
 import DatePicker from 'react-native-date-picker';
 import NetInfo from "@react-native-community/netinfo";
+import * as Progress from 'react-native-progress';
 
 const windowWidth = Dimensions.get('window').width - 94;
 const icon = <Icon style={{margin: 11, color: 'rgba(2, 48, 71 ,1)'}} name="chevron-down" size={20} color="#8ecae6" />;
@@ -61,6 +62,8 @@ function HistoryScreen({navigation}): React.JSX.Element {
   const [open, setOpen] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [text, setText] = useState('');
+  const [barVisible, setBarVisible] = useState(false);
+  const windowWidth = Dimensions.get('window').width;
 
   const opcije = ["Temperatura", "Vlažnost vazduha", "Vlažnost zemljišta", "Kvalitet vazduha", "UV indeks"];
   const labelUnits = ["°C", "%", "%", "ppm", ""]
@@ -108,11 +111,13 @@ function HistoryScreen({navigation}): React.JSX.Element {
 
         build = build + temp.toISOString().replace('T', '%20').replace('T', '%20').substring(0, today.toISOString().indexOf('.') + 2) + "&end=" + today.toISOString().replace('T', '%20').substring(0, today.toISOString().indexOf('.') + 2);
         fetch(build).then(x => x.json()).then(json => setData1(json.feeds));
+        setBarVisible(true);
 
         if (korelisanaVelicina !== -1){
           build = 'https://api.thingspeak.com/channels/2429193/fields/' + korelisanaVelicina.toString() + '.json?api_key=ICM2FPX89P99HRT1&start=';
           build = build + temp.toISOString().replace('T', '%20').replace('T', '%20').substring(0, today.toISOString().indexOf('.') + 2) + "&end=" + today.toISOString().replace('T', '%20').substring(0, today.toISOString().indexOf('.') + 2);
           fetch(build).then(x => x.json()).then(json => setData2(json.feeds));
+          setBarVisible(true);
         }
       }
     }
@@ -154,6 +159,7 @@ function HistoryScreen({navigation}): React.JSX.Element {
 
       setLine1(finalstruct.map(x => x.avg));
       setLine1Headers(finalstruct.map(x => x.timestamp.replace('T', ' ') + 'h'));
+      setBarVisible(false);
       
     }
   }, [data1]);
@@ -192,6 +198,7 @@ function HistoryScreen({navigation}): React.JSX.Element {
       }
 
       setLine2(finalstruct.map(x => x.avg));
+      setBarVisible(false);
       
     }
   }, [data2]);
@@ -295,9 +302,10 @@ function HistoryScreen({navigation}): React.JSX.Element {
         <View style={styles.unitView}>
             <Text style={[styles.labela, {color: "#8ecae6", fontSize: 15}]}>Odabrana Veličina: {labelUnit}</Text>
             <Text style={[styles.labela, {color: "#fb8500", fontSize: 15}]}>Korelisana Veličina: {correlationUnit.replace("/", "")}</Text>
-          </View>
+        </View>
         <Divider width={3} color={'#8ecae6'} />
-          <DatePicker modal open={open} date={pickedDate} mode='date' maximumDate={new Date()} buttonColor='#fb8500' dividerColor='#8ecae6' title="Odaberite datum"
+        {barVisible ? <Progress.Bar indeterminate={true} borderWidth={0} width={windowWidth}/> : null }
+        <DatePicker modal open={open} date={pickedDate} mode='date' maximumDate={new Date()} buttonColor='#fb8500' dividerColor='#8ecae6' title="Odaberite datum"
           onConfirm={(date) => {
             setOpen(false);
             setPickedDate(date) }}
