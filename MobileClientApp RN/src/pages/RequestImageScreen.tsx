@@ -28,6 +28,7 @@ import Iconm from 'react-native-vector-icons/MaterialCommunityIcons';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import MQTT from 'sp-react-native-mqtt';
 import NetInfo from "@react-native-community/netinfo";
+import * as Progress from 'react-native-progress';
 
 function RequestImageScreen({navigation}): React.JSX.Element {
     
@@ -36,7 +37,8 @@ function RequestImageScreen({navigation}): React.JSX.Element {
     const [text, setText] = useState('');
     const [link, setLink] = useState('');
     const [response, setResponse] = useState('');
-    let example = 'https://images.pexels.com/photos/417074/pexels-photo-417074.jpeg';
+    const [barVisible, setBarVisible] = useState(false);
+    const windowWidth = Dimensions.get('window').width;
 
     useEffect(() => {
       NetInfo.fetch().then(state => {
@@ -65,9 +67,7 @@ function RequestImageScreen({navigation}): React.JSX.Element {
       
         client.on('message', function(msg) {
           console.log('mqtt.event.message', msg);
-          console.log('here1')
           if(msg["data"] !== "IR"){
-            console.log('here2');
             setResponse(msg["data"]);
           }
           
@@ -84,7 +84,7 @@ function RequestImageScreen({navigation}): React.JSX.Element {
         console.log(err);
       });
     
-      ReactNativeBlobUtil.fetch('GET', 'https://images.pexels.com/photos/417074/pexels-photo-417074.jpeg', { Authorization: 'Bearer access-token...',})
+      ReactNativeBlobUtil.fetch('GET', 'https://images.pexels.com/photos/1770809/pexels-photo-1770809.jpeg', { Authorization: 'Bearer access-token...',})
         .then((res) => {
             let status = res.info().status;
 
@@ -102,7 +102,6 @@ function RequestImageScreen({navigation}): React.JSX.Element {
 
     useEffect(() => {
 
-      console.log('response effect triggered: ' + response);
       if(response !== ''){
         let reslink = response.split(' ');
         if(reslink[0] == '200'){
@@ -117,6 +116,7 @@ function RequestImageScreen({navigation}): React.JSX.Element {
                       // the conversion is done in native code
               let base64Str = res.base64();
               setImage(`data:image/png;base64,${base64Str}`);
+              setBarVisible(false);
             }
               })
               // Something went wrong:
@@ -126,7 +126,7 @@ function RequestImageScreen({navigation}): React.JSX.Element {
               })
     
             } else {
-              setText(reslink[1]);
+              setText("Greška, nije moguće povezati se sa imgur.com");
               setModalVisible(true);
             }
           }
@@ -143,6 +143,7 @@ function RequestImageScreen({navigation}): React.JSX.Element {
         } else {
 
           setResponse('');
+          setBarVisible(true);
 
           let responsetimeout = undefined;
           if(responsetimeout !== undefined) { clearTimeout(responsetimeout); }
@@ -151,6 +152,7 @@ function RequestImageScreen({navigation}): React.JSX.Element {
           if(response === ''){
             setText("Odgovor nije primljen, proverite da li je uređaj uključen.");
             setModalVisible(true);
+            setBarVisible(false);
           }
         
           }, 90000);
@@ -211,6 +213,7 @@ function RequestImageScreen({navigation}): React.JSX.Element {
                 <Image style={styles.image} source={{ uri: image}} />
             </View>
             <Divider width={3} color={'#8ecae6'} />
+            {barVisible ? <Progress.Bar indeterminate={true} borderWidth={0} width={windowWidth}/> : null }
 
             <View style={styles.buttonWrapper}>
                 <TouchableOpacity style={styles.opButtons} onPress={() => getLink()}><Text style={styles.btnText}>Zatraži sliku</Text></TouchableOpacity>
