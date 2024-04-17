@@ -163,7 +163,7 @@ function RequestImageScreen({navigation}): React.JSX.Element {
             setButtonDisabled(false);
           }
         
-          }, 90000);
+          }, 80000);
         }
 
       });
@@ -224,7 +224,7 @@ function RequestImageScreen({navigation}): React.JSX.Element {
             {barVisible ? <Progress.Bar indeterminate={true} borderWidth={0} width={windowWidth}/> : null }
 
             <View style={styles.buttonWrapper}>
-                <TouchableOpacity style={styles.opButtons} onPress={() => getLink()} disabled={buttonDisabled}><Text style={styles.btnText}>Zatraži sliku</Text></TouchableOpacity>
+                <TouchableOpacity style={buttonDisabled ? styles.opButton2 : styles.opButtons} onPress={() => getLink()} disabled={buttonDisabled}><Text style={styles.btnText}>Zatraži sliku</Text></TouchableOpacity>
                 <TouchableOpacity style={styles.opButtons} onPress={() => saveImage()}><Text style={styles.btnText}>Sačuvaj sliku na uređaj</Text></TouchableOpacity>
             </View>
         </LinearGradient>
@@ -283,6 +283,16 @@ const styles = StyleSheet.create({
     },
     opButtons:{
         backgroundColor: '#fb8500',
+        borderRadius: 10,
+        margin: 10,
+        height: 50,
+        width: 244,
+        justifyContent: 'center',
+        borderColor: '#8ecae6',
+        borderWidth: 2
+    },
+    opButton2:{
+      backgroundColor: 'rgba(2, 48, 71, 0.5)',
         borderRadius: 10,
         margin: 10,
         height: 50,
