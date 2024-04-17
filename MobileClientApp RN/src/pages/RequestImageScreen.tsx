@@ -36,46 +36,7 @@ function RequestImageScreen({navigation}): React.JSX.Element {
     const [text, setText] = useState('');
     const [link, setLink] = useState('');
     const [response, setResponse] = useState('');
-    const [requestPayload, setRequestPayload] = useState(0);
     let example = 'https://images.pexels.com/photos/417074/pexels-photo-417074.jpeg';
-
-    useEffect(() => {
-
-      let reslink;
-      console.log(response);
-      if(response !== ''){
-        reslink = response.split(' ');
-        if(reslink[0] == '200'){
-          setLink(reslink[1]);
-          
-          ReactNativeBlobUtil.fetch('GET', reslink[1], { Authorization: 'Bearer access-token...',})
-          .then((res) => {
-              let status = res.info().status;
-              console.log("status: " + status);
-  
-              if (status == 200) {
-                  // the conversion is done in native code
-                  let base64Str = res.base64();
-                  setImage(`data:image/png;base64,${base64Str}`);
-              }
-              else {
-                  // handle other status codes
-              }
-          })
-          // Something went wrong:
-          .catch((errorMessage, statusCode) => {
-              setText("Greška prilikom preuzimanja slike. Proverite Vašu internet konekciju.");
-              console.log(errorMessage, statusCode);
-              setModalVisible(true);
-          })
-
-        } else {
-          setText(reslink[1]);
-          setModalVisible(true);
-        }
-      }
-
-    }, [response]);
 
     useEffect(() => {
       NetInfo.fetch().then(state => {
@@ -87,9 +48,9 @@ function RequestImageScreen({navigation}): React.JSX.Element {
       
       MQTT.createClient({
         uri: 'mqtt://mqtt3.thingspeak.com:1883',
-        clientId: 'ICELOCgXByY8CjwbGjETJzU',
-        user: 'ICELOCgXByY8CjwbGjETJzU',
-        pass: 'w5Z5zNiCmGsZTG7TplxVQcaP',
+        clientId: 'OBYvLhc5FzE4ChswEQAXJC8',
+        user: 'OBYvLhc5FzE4ChswEQAXJC8',
+        pass: 'nN4J51b1GOGqcun8qXmuiahK',
         auth: true,
   
       }).then(function(client) {
@@ -104,8 +65,9 @@ function RequestImageScreen({navigation}): React.JSX.Element {
       
         client.on('message', function(msg) {
           console.log('mqtt.event.message', msg);
-          if(msg["data"] !== "IR" && msg["data"] !== "NR"){
-            fetch('https://api.thingspeak.com/update?api_key=76ATXSZ223T5OQ6D&field6=NR');
+          console.log('here1')
+          if(msg["data"] !== "IR"){
+            console.log('here2');
             setResponse(msg["data"]);
           }
           
@@ -115,8 +77,9 @@ function RequestImageScreen({navigation}): React.JSX.Element {
           console.log('connected');
           client.subscribe('channels/2429193/subscribe/fields/field6', 0);
         });
-      
+
         client.connect();
+        
       }).catch(function(err){
         console.log(err);
       });
@@ -130,9 +93,6 @@ function RequestImageScreen({navigation}): React.JSX.Element {
                 let base64Str = res.base64();
                 setImage(`data:image/png;base64,${base64Str}`);
             }
-            else {
-                // handle other status codes
-            }
         })
         // Something went wrong:
         .catch((errorMessage, statusCode) => {
@@ -140,26 +100,63 @@ function RequestImageScreen({navigation}): React.JSX.Element {
             setModalVisible(true);
         })}, []);
 
+    useEffect(() => {
+
+      console.log('response effect triggered: ' + response);
+      if(response !== ''){
+        let reslink = response.split(' ');
+        if(reslink[0] == '200'){
+          setLink(reslink[1]);
+          console.log('link:' + reslink[1]);
+              
+          ReactNativeBlobUtil.fetch('GET', reslink[1], { Authorization: 'Bearer access-token...',})
+          .then((res) => {
+            let status = res.info().status;
+      
+            if (status == 200) {
+                      // the conversion is done in native code
+              let base64Str = res.base64();
+              setImage(`data:image/png;base64,${base64Str}`);
+            }
+              })
+              // Something went wrong:
+              .catch((errorMessage, statusCode) => {
+                  setText("Greška prilikom preuzimanja slike. Proverite Vašu internet konekciju.");
+                  setModalVisible(true);
+              })
+    
+            } else {
+              setText(reslink[1]);
+              setModalVisible(true);
+            }
+          }
+    
+    }, [response]);
+
     const getLink = () =>{
 
-      fetch('https://api.thingspeak.com/update?api_key=76ATXSZ223T5OQ6D&field6=IR').then(x => x.json()).then(json => setRequestPayload(json));
-      if(requestPayload === 0){
-        console.log(requestPayload);
-        setText("Thingspeak API je trenutno zauzet. Molimo pokušajte ponovo za 15 sekundi.");
-        setModalVisible(true);
-      } else {
-        setResponse('');
+      fetch('https://api.thingspeak.com/update?api_key=76ATXSZ223T5OQ6D&field6=IR').then(x => x.json()).then(json => {
 
-        let responsetimeout = undefined;
-        if(responsetimeout !== undefined) { clearTimeout(responsetimeout); }
+        if(json == 0){
+          setText("Thingspeak api trenutno zauzet, pokušajte ponovo za 15 sekundi.");
+          setModalVisible(true);
+        } else {
 
-        responsetimeout = setTimeout(() => {
+          setResponse('');
+
+          let responsetimeout = undefined;
+          if(responsetimeout !== undefined) { clearTimeout(responsetimeout); }
+
+          responsetimeout = setTimeout(() => {
           if(response === ''){
             setText("Odgovor nije primljen, proverite da li je uređaj uključen.");
             setModalVisible(true);
           }
-        }, 20000);
-      }
+        
+          }, 90000);
+        }
+
+      });
 
     };
 
@@ -172,7 +169,6 @@ function RequestImageScreen({navigation}): React.JSX.Element {
         .fetch('GET', link)
         .then((res) => {
             // the path should be dirs.DocumentDir + 'path-to-file.anything'
-            console.log('The file saved to ', res.path());
             setText("Slika je uspešno sačuvana u Vašu Downloads datoteku na uređaju.");
             setModalVisible(true);
         }).catch((errorMessage, statusCode) => {
