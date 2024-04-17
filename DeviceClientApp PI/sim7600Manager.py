@@ -127,5 +127,5 @@ class Sim7600Manager:
             link = responseObj["data"]["link"]
             self.publishData("field6={}".format(str(status) + " " + link))
         else:
-            self.publishData("field6=600 nije moguce povezati se sa imgur.com.")
+            self.publishData("field6=600 error")
             
