@@ -40,6 +40,8 @@ function RequestImageScreen({navigation}): React.JSX.Element {
     const [barVisible, setBarVisible] = useState(false);
     const windowWidth = Dimensions.get('window').width;
     const [buttonDisabled, setButtonDisabled] = useState(false);
+    const [sourceTypeToggler, setSourceTypeToggler] = useState(false);
+    const loadedImage = require("../images/pexels-photo-1770809.jpeg");
 
     useEffect(() => {
       NetInfo.fetch().then(state => {
@@ -85,21 +87,7 @@ function RequestImageScreen({navigation}): React.JSX.Element {
         console.log(err);
       });
     
-      ReactNativeBlobUtil.fetch('GET', 'https://images.pexels.com/photos/1770809/pexels-photo-1770809.jpeg', { Authorization: 'Bearer access-token...',})
-        .then((res) => {
-            let status = res.info().status;
-
-            if (status == 200) {
-                // the conversion is done in native code
-                let base64Str = res.base64();
-                setImage(`data:image/png;base64,${base64Str}`);
-            }
-        })
-        // Something went wrong:
-        .catch((errorMessage, statusCode) => {
-            setText("Greška prilikom preuzimanja slike. Proverite Vašu internet konekciju.");
-            setModalVisible(true);
-    })}, []);
+    }, []);
 
     useEffect(() => {
 
@@ -116,6 +104,7 @@ function RequestImageScreen({navigation}): React.JSX.Element {
             if (status == 200) {
                       // the conversion is done in native code
               let base64Str = res.base64();
+              setSourceTypeToggler(true);
               setImage(`data:image/png;base64,${base64Str}`);
               setBarVisible(false);
               setButtonDisabled(false);
@@ -148,22 +137,22 @@ function RequestImageScreen({navigation}): React.JSX.Element {
           setModalVisible(true);
         } else {
 
-          setResponse('');
           setBarVisible(true);
           setButtonDisabled(true);
+          setResponse('');
 
           let responsetimeout = undefined;
           if(responsetimeout !== undefined) { clearTimeout(responsetimeout); }
 
           responsetimeout = setTimeout(() => {
-          if(response === ''){
-            setText("Odgovor nije primljen, proverite da li je uređaj uključen.");
-            setModalVisible(true);
-            setBarVisible(false);
-            setButtonDisabled(false);
-          }
+            if(response === '') {
+              setText("Odgovor nije primljen, proverite da li je uređaj uključen.");
+              setModalVisible(true);
+              setBarVisible(false);
+              setButtonDisabled(false);
+            }
         
-          }, 80000);
+          }, 70000);
         }
 
       });
@@ -218,7 +207,7 @@ function RequestImageScreen({navigation}): React.JSX.Element {
 
             <Text style={styles.title}>Zatražite sliku u polju uživo:</Text>
             <View style={styles.imageView}>
-                <Image style={styles.image} source={{ uri: image}} />
+                { sourceTypeToggler ? <Image style={styles.image} source={{ uri: image}}/> : <Image style={styles.image} source={loadedImage}/>}
             </View>
             <Divider width={3} color={'#8ecae6'} />
             {barVisible ? <Progress.Bar indeterminate={true} borderWidth={0} width={windowWidth}/> : null }

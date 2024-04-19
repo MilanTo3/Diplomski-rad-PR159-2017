@@ -119,9 +119,9 @@ function HomeScreen({navigation}): React.JSX.Element {
   
     if(navigation.isFocused()){
       console.log('running');
-      intervalFetchFunc();
+      intervalFetchFunc(); //first fetch
 
-      const interval = setInterval(intervalFetchFunc, 15000);
+      const interval = setInterval(intervalFetchFunc, 120000);
     
       return () => clearInterval(interval);
     }
