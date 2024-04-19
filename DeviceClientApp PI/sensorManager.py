@@ -40,7 +40,7 @@ class SensorManager:
         return self.airqch.raw_value >> 2
     
     def readUVIndex(self):
-        uvIntensity = self.mapfloat(self.uvch.voltage, 0.99, 2.8, 0.0, 15.0)
+        uvIntensity = self.valmap(self.uvch.voltage, 0.99, 2.8, 0.0, 15.0)
         uvIntensity = round(uvIntensity, 1)
         if(uvIntensity < 0): return 0
 
@@ -48,6 +48,3 @@ class SensorManager:
 
     def valmap(self, value, istart, istop, ostart, ostop):
         return ostart + (ostop - ostart) * ((value - istart) / (istop - istart))
-
-    def mapfloat(self, value, istart, istop, ostart, ostop):
-        return (value - istart) * (ostop - ostart) / (istop - istart) + ostart
