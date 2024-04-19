@@ -20,7 +20,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {NavigationContainer} from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LinearGradient from 'react-native-linear-gradient';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { color } from 'react-native-reanimated';
 import SelectDropdown from 'react-native-select-dropdown';
 import { Divider } from '@rneui/themed';
@@ -42,6 +42,8 @@ function RequestImageScreen({navigation}): React.JSX.Element {
     const [buttonDisabled, setButtonDisabled] = useState(false);
     const [sourceTypeToggler, setSourceTypeToggler] = useState(false);
     const loadedImage = require("../images/pexels-photo-1770809.jpeg");
+    const countRef = useRef(response);
+    countRef.current = response;
 
     useEffect(() => {
       NetInfo.fetch().then(state => {
@@ -140,19 +142,20 @@ function RequestImageScreen({navigation}): React.JSX.Element {
           setBarVisible(true);
           setButtonDisabled(true);
           setResponse('');
+          console.log("current is: " + countRef.current);
 
           let responsetimeout = undefined;
           if(responsetimeout !== undefined) { clearTimeout(responsetimeout); }
 
           responsetimeout = setTimeout(() => {
-            if(response === '') {
+            if(countRef.current === '') {
               setText("Odgovor nije primljen, proverite da li je uređaj uključen.");
               setModalVisible(true);
               setBarVisible(false);
               setButtonDisabled(false);
             }
         
-          }, 70000);
+          }, 60000);
         }
 
       });
