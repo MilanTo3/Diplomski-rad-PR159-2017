@@ -108,16 +108,21 @@ class Sim7600Manager:
         self.input_message('AT+HTTPDATA={},400'.format(len(f)), f)
         self.SentMessage('ATE1\r\n')
         self.SentMessage('AT+HTTPACTION=1\r\n')
-        time.sleep(15)
         self.getResponse()
         time.sleep(0.5)
         self.SentMessage('AT+HTTPTERM\r\n')
 
     def getResponse(self):
+        i = 0
         towrite = 'AT+HTTPREAD=520\r\n'.encode()
-        self.ser.write(towrite)
-        time.sleep(1)
-        response = self.ser.read_all().decode()
+        while i <= 20:
+            self.ser.write(towrite)
+            time.sleep(1)
+            response = self.ser.read_all().decode()
+            if "ERROR" in response:
+                i = i + 4
+            else: break
+            time.sleep(3)
         responses = response.split('\r\n')
 
         status = [x for x in responses if x.startswith('{"status"')]
