@@ -30,7 +30,7 @@ pub = "channels/"+ channelID +"/publish" # field1=100&field2=50
 sub = "channels/"+ channelID +"/subscribe/fields/field6" # subscribe to image request field
 
 def thread_Start(ser):
-  thread = threading.Thread(target=getResponseData, args=(ser, gsmLock))
+  thread = threading.Thread(target=getResponseData, args=(ser,))
   thread.daemon = True
   thread.start()
 
@@ -62,7 +62,7 @@ def loop():
     writeRecords()
     sendRecords()
 
-    time.sleep(18)
+    time.sleep(180)
 
 def getRecords():
 
@@ -71,7 +71,7 @@ def getRecords():
   th = sensorManager.readTempandHumidity()
   Record["temperatura"] = th[0]
   Record["vlaznost_vazduha"] = th[1]
-  #Record["uv_zracenje"] = sensorManager.readUVIndex()
+  Record["uv_zracenje"] = sensorManager.readUVIndex()
 
 def writeRecords():
 
@@ -83,10 +83,9 @@ def sendRecords():
   gsmLock.acquire()
   sim7600.publishData("field1=" + str(Record["temperatura"]) + "&field2=" + str(Record["vlaznost_vazduha"]) + "&field3=" + str(Record["vlaznost_zemljista"]) 
                       + "&field4=" + str(Record["kvalitet_vazduha"]) + "&field5=" + str(Record["uv_zracenje"]))
-  print('released')
   gsmLock.release()
 
-def getResponseData(ser, lock):
+def getResponseData(ser):
   
   while True:
     while ser.in_waiting:
