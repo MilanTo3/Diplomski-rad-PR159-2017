@@ -62,7 +62,7 @@ def loop():
     writeRecords()
     sendRecords()
 
-    time.sleep(180)
+    time.sleep(18)
 
 def getRecords():
 
@@ -71,7 +71,7 @@ def getRecords():
   th = sensorManager.readTempandHumidity()
   Record["temperatura"] = th[0]
   Record["vlaznost_vazduha"] = th[1]
-  Record["uv_zracenje"] = sensorManager.readUVIndex()
+  #Record["uv_zracenje"] = sensorManager.readUVIndex()
 
 def writeRecords():
 
