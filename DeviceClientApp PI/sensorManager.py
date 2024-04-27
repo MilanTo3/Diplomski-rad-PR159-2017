@@ -7,9 +7,9 @@ class SensorManager:
     wetlimit = 280
     # 10 seconds calibration
 
-    airqch = gpiozero.MCP3208(channel=0)
-    soilmch = gpiozero.MCP3208(channel=1)
-    uvch = gpiozero.MCP3208(channel=2)
+    airqch = gpiozero.MCP3004(channel=0)
+    soilmch = gpiozero.MCP3004(channel=2)
+    uvch = gpiozero.MCP3004(channel=3)
     dht22 = adafruit_dht.DHT22(board.D22, use_pulseio=True)
 
     def readTempandHumidity(self):
@@ -26,7 +26,7 @@ class SensorManager:
                 signal = False
 
     def readSoilMoisturePercentage(self):
-        l = self.soilmch.raw_value >> 2
+        l = self.soilmch.raw_value
         soilh = round(self.valmap(l, self.wetlimit, self.drylimit, 100, 0), 1)
         if(soilh > 100): return 100
         elif(soilh < 0): return 0
@@ -34,13 +34,13 @@ class SensorManager:
         return soilh
     
     def readSoilMoistureRawSensorValue(self):
-        return self.soilmch.raw_value >> 2
+        return self.soilmch.raw_value
 
     def readAirQuality(self):
-        return self.airqch.raw_value >> 2
+        return self.airqch.raw_value
     
     def readUVIndex(self):
-        uvIntensity = self.valmap(self.uvch.voltage, 0.99, 2.8, 0.0, 15.0)
+        uvIntensity = self.valmap(self.uvch.voltage, 0.99, 2.75, 0.0, 15.0)
         uvIntensity = round(uvIntensity, 1)
         if(uvIntensity < 0): return 0
 
