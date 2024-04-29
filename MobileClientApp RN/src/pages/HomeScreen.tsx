@@ -50,24 +50,9 @@ function HomeScreen({navigation}): React.JSX.Element {
   const [uvModalVisible, setUVModalVisible] = useState(false);
   const [ttData, setttData] = useState({ temperature: 0, airH: '0', airQ: '0', soilH: '0', uvIndex: '0', createdAt: '' });
   const [airQDef, setairQDef] = useState('');
+  const [uvIndexDef, setUvIndexDef] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [text, setText] = useState('');
-
-  const airQDefDet = () => {
-    if (Number(ttData.airQ) >= 0 && Number(ttData.airQ) <= 33){
-      setairQDef('Veoma dobar');
-    } else if(Number(ttData.airQ) >= 34 && Number(ttData.airQ) <= 66){
-      setairQDef('Dobar');
-    } else if(Number(ttData.airQ) >= 67 && Number(ttData.airQ) <= 99){
-      setairQDef('Prihvatljiv');
-    } else if(Number(ttData.airQ) >= 100 && Number(ttData.airQ) <= 149){
-      setairQDef('Loš');
-    } else if(Number(ttData.airQ) >= 150 && Number(ttData.airQ) <= 200){
-      setairQDef('Veoma Loš');
-    } else if(Number(ttData.airQ) >= 201){
-      setairQDef('Izuzetno Loš');
-    }
-  }
 
   const airstate = {
     tableHead: ['Indeks:', 'Kvalitet Vazduha:'],
@@ -105,9 +90,38 @@ function HomeScreen({navigation}): React.JSX.Element {
     fetch('https://api.thingspeak.com/channels/2429193/feeds.json?api_key=ICM2FPX89P99HRT1&results=1&timezone=Europe/Belgrade').then(x => x.json()).then(json => settingData(json));
     fadeAnim.resetAnimation();
     fadeIn();
-    airQDefDet();
     
   };
+
+  useEffect(() => {
+
+    if (Number(ttData.airQ) >= 0 && Number(ttData.airQ) <= 33){
+      setairQDef('Veoma dobar');
+    } else if(Number(ttData.airQ) >= 34 && Number(ttData.airQ) <= 66){
+      setairQDef('Dobar');
+    } else if(Number(ttData.airQ) >= 67 && Number(ttData.airQ) <= 99){
+      setairQDef('Prihvatljiv');
+    } else if(Number(ttData.airQ) >= 100 && Number(ttData.airQ) <= 149){
+      setairQDef('Loš');
+    } else if(Number(ttData.airQ) >= 150 && Number(ttData.airQ) <= 200){
+      setairQDef('Veoma Loš');
+    } else if(Number(ttData.airQ) >= 201){
+      setairQDef('Izuzetno Loš');
+    }
+
+    if (Number(ttData.uvIndex) >= 0 && Number(ttData.uvIndex) <= 2){
+      setUvIndexDef('Nisko zračenje');
+    } else if(Number(ttData.uvIndex) >= 3 && Number(ttData.uvIndex) <= 5){
+      setUvIndexDef('Umereno zračenje');
+    } else if(Number(ttData.uvIndex) >= 6 && Number(ttData.uvIndex) <= 7){
+      setUvIndexDef('Visoko zračenje');
+    } else if(Number(ttData.uvIndex) >= 8 && Number(ttData.uvIndex) <= 10){
+      setUvIndexDef('Veoma visoko zračenje');
+    } else if(Number(ttData.uvIndex) >= 11){
+      setUvIndexDef('Ekstremno zračenje');
+    }
+
+  }, [ttData]);
   
   useEffect(() => {
     NetInfo.fetch().then(state => {
@@ -391,6 +405,7 @@ function HomeScreen({navigation}): React.JSX.Element {
                             <Animated.View style={[{opacity: fadeAnim}]}>
                               <Text style={styles.labelaBigger}>{ttData.uvIndex}</Text>
                             </Animated.View>
+                            <Text style={styles.labela}>{uvIndexDef}</Text>
                           </View>
                         </View>
   
