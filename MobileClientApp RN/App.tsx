@@ -25,11 +25,13 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from './src/pages/HomeScreen';
 import HistoryScreen from './src/pages/HistoryScreen';
 import RequestImageScreen from './src/pages/RequestImageScreen';
+import { LogBox } from 'react-native';
 
 const Stack = createNativeStackNavigator();
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
+  LogBox.ignoreLogs(['Warning: ...']);
 
   return (
     <SafeAreaView style={{flex:1}}>

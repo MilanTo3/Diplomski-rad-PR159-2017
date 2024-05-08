@@ -95,15 +95,15 @@ function HomeScreen({navigation}): React.JSX.Element {
 
   useEffect(() => {
 
-    if (Number(ttData.airQ) >= 0 && Number(ttData.airQ) <= 33){
+    if (Number(ttData.airQ) >= 0 && Number(ttData.airQ) <= 25){
       setairQDef('Veoma dobar');
-    } else if(Number(ttData.airQ) >= 34 && Number(ttData.airQ) <= 66){
+    } else if(Number(ttData.airQ) >= 25 && Number(ttData.airQ) <= 50){
       setairQDef('Dobar');
-    } else if(Number(ttData.airQ) >= 67 && Number(ttData.airQ) <= 99){
+    } else if(Number(ttData.airQ) >= 51 && Number(ttData.airQ) <= 100){
       setairQDef('Prihvatljiv');
-    } else if(Number(ttData.airQ) >= 100 && Number(ttData.airQ) <= 149){
+    } else if(Number(ttData.airQ) >= 101 && Number(ttData.airQ) <= 150){
       setairQDef('Loš');
-    } else if(Number(ttData.airQ) >= 150 && Number(ttData.airQ) <= 200){
+    } else if(Number(ttData.airQ) >= 151 && Number(ttData.airQ) <= 200){
       setairQDef('Veoma Loš');
     } else if(Number(ttData.airQ) >= 201){
       setairQDef('Izuzetno Loš');
@@ -371,7 +371,7 @@ function HomeScreen({navigation}): React.JSX.Element {
                         <Divider width={3} color={'#8ecae6'} />
                         
                         <View style={styles.infoTextWrapper}>
-                          <Text style={styles.infoText}>Mera kvaliteta vazduha iskazana je u [Parts per million], označava milioniti deo jedne celine. U vazduhu, to su čestice zagađivača. Države koriste različite jedinice za meru kvaliteta vazduha i propisuju indekse kvaliteta vazduha. U ovom projektu biće korišćen standard koje je propisalo ministarstvo zaštite životne sredine Australije:</Text>
+                          <Text style={styles.infoText}>Mera kvaliteta vazduha iskazana je u [Parts per million], označava milioniti deo jedne celine. U vazduhu, to su čestice zagađivača. Države koriste različite jedinice za meru kvaliteta vazduha i propisuju indekse kvaliteta vazduha (AQI). U ovom projektu biće korišćena sledeća skala:</Text>
                           <TouchableOpacity onPress={() => setairQModalVisible(true)} style={styles.buttonStyle}>
                             <Text style={styles.btnText}>Info</Text>
                           </TouchableOpacity>

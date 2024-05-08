@@ -259,7 +259,7 @@ function HistoryScreen({navigation}): React.JSX.Element {
               style={{
                 position: 'absolute',
                 top: y - 25,
-                left: x - 8,
+                left: x + 5,
               }}>
               <Text style={[styles.labela, {fontSize: 11}]}>
                 {indexData}
@@ -295,7 +295,8 @@ function HistoryScreen({navigation}): React.JSX.Element {
           style={{
             borderBottomLeftRadius: 16,
             borderTopLeftRadius: 0,
-            paddingBottom: 1
+            paddingBottom: 1,
+            paddingTop: 34
           }}/>
           
         </ScrollView>
@@ -349,7 +350,7 @@ const styles = StyleSheet.create({
   },
   graphView:{
     margin: 10,
-    marginTop: 20,
+    marginTop: 0,
   },
   title:{
     fontSize: 20,
