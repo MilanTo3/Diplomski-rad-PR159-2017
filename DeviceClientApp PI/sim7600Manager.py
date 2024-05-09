@@ -27,9 +27,10 @@ class Sim7600Manager:
         self.imgurKey = key
 
     def setup(self):
+        self.SentMessage('AT+IPR=921600\r\n')
+        self.ser = serial.Serial('/dev/ttyS0', baudrate=921600, timeout=1)
         self.SentMessage('AT+HTTPTERM\r\n')
-        self.SentMessage('AT+IPR=460800\r\n')
-        self.ser = serial.Serial('/dev/ttyS0', baudrate=460800, timeout=1)
+        time.sleep(0.3)
         self.SentMessage('AT+CMQTTDISC=0,60\r\n')
         time.sleep(0.5) 
         self.SentMessage('AT+CMQTTREL=0\r\n')

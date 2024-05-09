@@ -62,7 +62,7 @@ def loop():
     writeRecords()
     sendRecords()
 
-    time.sleep(180)
+    time.sleep(120)
 
 def getRecords():
 

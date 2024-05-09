@@ -3,7 +3,7 @@ import gpiozero, board
 
 class SensorManager:
     # ----------- Kalibracija senzora vlaznosti zemljista
-    drylimit = 775
+    drylimit = 770
     wetlimit = 280
     # 10 seconds calibration
 
@@ -40,7 +40,7 @@ class SensorManager:
         return self.airqch.raw_value
     
     def readUVIndex(self):
-        uvIntensity = self.valmap(self.uvch.voltage, 0.98, 2.72, 0.0, 15.0)
+        uvIntensity = self.valmap(self.uvch.voltage, 0.99, 2.75, 0.0, 15.0)
         uvIntensity = round(uvIntensity, 1)
         if(uvIntensity < 0): return 0
 
