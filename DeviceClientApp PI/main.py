@@ -41,12 +41,7 @@ sim7600 = Sim7600Manager(ID, mqtt_server, username, password, pub, sub, imgurKey
 imageManager = ImageManager()
 camController = CameraController()
 
-def buttonCallback(self):
-  print('callback: ' + str(GPIO.input(17)))
-
 GPIO.setmode(GPIO.BCM)
-#GPIO.setup(17, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-#GPIO.add_event_detect(17, GPIO.RISING, buttonCallback)
 
 Record = { "vlaznost_vazduha": 0,
            "temperatura": 0,
