@@ -54,10 +54,10 @@ def loop():
   sim7600.setup()
   while True:
     getRecords()
-    writeRecords()
+    #writeRecords()
     sendRecords()
 
-    time.sleep(120)
+    time.sleep(30)
 
 def getRecords():
 
@@ -86,7 +86,7 @@ def getResponseData(ser):
     while ser.in_waiting:
       gsmLock.acquire()
       c:str = ser.read_all().decode()
-      print("reading:" + c)
+      #print("reading:" + c)
       gsmLock.release()
       if "RXPAYLOAD" in c:
         k = c.split('\r\n')
@@ -94,7 +94,7 @@ def getResponseData(ser):
         if filter.count != 0:
           payloadIndex = k.index(filter[0]) + 1
           payload = k[payloadIndex]
-          print('Payload is: '+ payload)
+          #print('Payload is: '+ payload)
           if(payload == 'IR'): # if theres a image request:
             camController.takePicture()
             imageManager.JPEGSaveWithTargetSize(Image.open(path / 'capture.jpg'), 'compressedcapture.jpg', 90000)
@@ -107,8 +107,5 @@ def getResponseData(ser):
         sim7600.setup()
         gsmLock.release()
     time.sleep(1)
-
-def sendSnapshot(base64image):
-  sim7600.httpPostImageToImgur(base64image)
 
 loop()
