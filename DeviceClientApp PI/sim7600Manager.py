@@ -27,9 +27,10 @@ class Sim7600Manager:
         self.imgurKey = key
 
     def setup(self):
+        self.SentMessage('AT+IPR=921600\r\n')
+        self.ser = serial.Serial('/dev/ttyS0', baudrate=921600, timeout=1)
         self.SentMessage('AT+HTTPTERM\r\n')
-        self.SentMessage('AT+IPR=460800\r\n')
-        self.ser = serial.Serial('/dev/ttyS0', baudrate=460800, timeout=1)
+        time.sleep(0.3)
         self.SentMessage('AT+CMQTTDISC=0,60\r\n')
         time.sleep(0.5) 
         self.SentMessage('AT+CMQTTREL=0\r\n')
@@ -50,22 +51,20 @@ class Sim7600Manager:
         self.input_message(connect_cmd, self.sub)
 
     def SentMessage(self, p_char):
-        global isSerial2Available # CAREFUL!!!
+
         towrite = p_char.encode()
         self.ser.write(towrite)
         time.sleep(1)
 
         response = self.ser.read_all().decode()
         responses = response.split('\r\n')
-        print(response)
+        #print(response)
         for resp in responses:
             if "+CMQTTCONNECT: 0," in resp:
                 status = int(resp.split("+CMQTTCONNECT: 0,")[1]) # Check if the client is connected.
                 if status == 0:
-                    isSerial2Available = False
                     print("\nMqtt Connected")
             elif resp == "+CMQTTSTART: 23":
-                isSerial2Available = False
                 print("\nMqtt is already Connected")
                     
     def input_message(self, p_char, p_data):
@@ -77,7 +76,7 @@ class Sim7600Manager:
 
         response = self.ser.read_all().decode()
         responses = response.split('\r\n')
-        print(response)
+        #print(response)
         for resp in responses:
             if "+CMQTTSUB: 0," in resp:
                 status = int(resp.split("+CMQTTSUB: 0,")[1])
