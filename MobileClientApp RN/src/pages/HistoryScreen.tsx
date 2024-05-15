@@ -110,13 +110,19 @@ function HistoryScreen({navigation}): React.JSX.Element {
         }
 
         build = build + temp.toISOString().replace('T', '%20').replace('T', '%20').substring(0, today.toISOString().indexOf('.') + 2) + "&end=" + today.toISOString().replace('T', '%20').substring(0, today.toISOString().indexOf('.') + 2);
-        fetch(build).then(x => x.json()).then(json => setData1(json.feeds));
+        fetch(build).then(x => x.json()).then(json => setData1(json.feeds)).catch(function(error) {
+          setText("Proverite vašu internet konekciju.");
+          setModalVisible(true);
+        });
         setBarVisible(true);
 
         if (korelisanaVelicina !== -1){
           build = 'https://api.thingspeak.com/channels/2429193/fields/' + korelisanaVelicina.toString() + '.json?api_key=ICM2FPX89P99HRT1&start=';
           build = build + temp.toISOString().replace('T', '%20').replace('T', '%20').substring(0, today.toISOString().indexOf('.') + 2) + "&end=" + today.toISOString().replace('T', '%20').substring(0, today.toISOString().indexOf('.') + 2);
-          fetch(build).then(x => x.json()).then(json => setData2(json.feeds));
+          fetch(build).then(x => x.json()).then(json => setData2(json.feeds)).catch(function(error) {
+            setText("Proverite vašu internet konekciju.");
+            setModalVisible(true);
+          });
           setBarVisible(true);
         }
       }
