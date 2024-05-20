@@ -187,7 +187,7 @@ function RequestImageScreen({navigation}): React.JSX.Element {
               setButtonDisabled(false);
             }
         
-          }, 60000);
+          }, 90000);
         }
 
       }).catch(function(error) {

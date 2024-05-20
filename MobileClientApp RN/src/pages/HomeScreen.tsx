@@ -29,7 +29,6 @@ import { withNavigationFocus } from 'react-navigation';
 import NetInfo from "@react-native-community/netinfo";
 
 import { Table, TableWrapper, Row, Rows } from 'react-native-table-component';
-import mqtt from 'precompiled-mqtt';
   
   const toFahrenheit = function (celsius){
     let fahren = (9/5 * celsius) + 32;
@@ -135,7 +134,7 @@ function HomeScreen({navigation}): React.JSX.Element {
       console.log('running');
       intervalFetchFunc(); //first fetch
 
-      const interval = setInterval(intervalFetchFunc, 20000);
+      const interval = setInterval(intervalFetchFunc, 30000);
     
       return () => clearInterval(interval);
     }

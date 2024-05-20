@@ -86,7 +86,7 @@ function HistoryScreen({navigation}): React.JSX.Element {
       let build = '';
 
       if(izabranOpseg !== -1 && izabranaVelicina !== -1){
-        build = 'https://api.thingspeak.com/channels/2429193/fields/' + izabranaVelicina.toString() + '.json?api_key=ICM2FPX89P99HRT1&start=';
+        build = 'https://api.thingspeak.com/channels/2429193/fields/' + izabranaVelicina.toString() + '.json?api_key=ICM2FPX89P99HRT1&timezone=Europe/Belgrade&start=';
         
         let today = new Date();
         today.setHours(today.getHours() + 1);
@@ -117,7 +117,7 @@ function HistoryScreen({navigation}): React.JSX.Element {
         setBarVisible(true);
 
         if (korelisanaVelicina !== -1){
-          build = 'https://api.thingspeak.com/channels/2429193/fields/' + korelisanaVelicina.toString() + '.json?api_key=ICM2FPX89P99HRT1&start=';
+          build = 'https://api.thingspeak.com/channels/2429193/fields/' + korelisanaVelicina.toString() + '.json?api_key=ICM2FPX89P99HRT1&timezone=Europe/Belgrade&start=';
           build = build + temp.toISOString().replace('T', '%20').replace('T', '%20').substring(0, today.toISOString().indexOf('.') + 2) + "&end=" + today.toISOString().replace('T', '%20').substring(0, today.toISOString().indexOf('.') + 2);
           fetch(build).then(x => x.json()).then(json => setData2(json.feeds)).catch(function(error) {
             setText("Proverite vašu internet konekciju.");
@@ -147,6 +147,7 @@ function HistoryScreen({navigation}): React.JSX.Element {
       });
 
       result = groupBy(result, 'created_at');
+
       result = Object.values(result);
       
       let finalstruct = [];
