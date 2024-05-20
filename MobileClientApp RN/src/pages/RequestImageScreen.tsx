@@ -29,6 +29,7 @@ import ReactNativeBlobUtil from 'react-native-blob-util';
 import MQTT from 'sp-react-native-mqtt';
 import NetInfo from "@react-native-community/netinfo";
 import * as Progress from 'react-native-progress';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function RequestImageScreen({navigation}): React.JSX.Element {
     
@@ -38,12 +39,22 @@ function RequestImageScreen({navigation}): React.JSX.Element {
     const [link, setLink] = useState('');
     const [response, setResponse] = useState('');
     const [barVisible, setBarVisible] = useState(false);
+    const [requestDate, setRequestDate] = useState(new Date());
     const windowWidth = Dimensions.get('window').width;
     const [buttonDisabled, setButtonDisabled] = useState(false);
     const [sourceTypeToggler, setSourceTypeToggler] = useState(false);
     const loadedImage = require("../images/pexels-photo-1770809.jpeg");
     const countRef = useRef(response);
     countRef.current = response;
+
+    const getData = async () => {
+      try {
+        const jsonValue = await AsyncStorage.getItem('last-request-time');
+        return jsonValue != null ? JSON.parse(jsonValue) : null;
+      } catch (e) {
+        // error reading value
+      }
+    };
 
     useEffect(() => {
       NetInfo.fetch().then(state => {
@@ -130,19 +141,40 @@ function RequestImageScreen({navigation}): React.JSX.Element {
     
     }, [response]);
 
-    const getLink = () =>{
+    const storeDateRequestValue = async (value:Date) => {
+
+      const jsonValue = JSON.stringify(value);
+      await AsyncStorage.setItem('last-request-time', jsonValue);
+
+    };
+
+    const getLink = async () =>{
+
+      let datenow = new Date();
+      let bin: Date = await getData();
+
+      if(bin != null) {
+        let reqdate = new Date(bin);
+        reqdate.setSeconds(reqdate.getSeconds() + 45);
+        
+        if(reqdate > datenow) {
+          setText("Zahtev možete poslati svakih 45 sekundi. Sledeći zahtev možete poslati za: " + Math.round(((reqdate.getTime() - datenow.getTime()) / 1000), 0) + " sekundi.");
+          setModalVisible(true);
+          return;
+        }
+      }
 
       fetch('https://api.thingspeak.com/update?api_key=76ATXSZ223T5OQ6D&field6=IR').then(x => x.json()).then(json => {
 
         if(json == 0){
-          setText("Thingspeak api trenutno zauzet, pokušajte ponovo za 15 sekundi.");
+          setText("Thingspeak api trenutno zauzet, pokušajte ponovo za par sekundi.");
           setModalVisible(true);
         } else {
 
           setBarVisible(true);
           setButtonDisabled(true);
           setResponse('');
-          console.log("current is: " + countRef.current);
+          storeDateRequestValue(new Date());
 
           let responsetimeout = undefined;
           if(responsetimeout !== undefined) { clearTimeout(responsetimeout); }
@@ -158,6 +190,9 @@ function RequestImageScreen({navigation}): React.JSX.Element {
           }, 60000);
         }
 
+      }).catch(function(error) {
+        setText("Proverite vašu internet konekciju.");
+        setModalVisible(true);
       });
 
     };

@@ -60,7 +60,7 @@ function HomeScreen({navigation}): React.JSX.Element {
       ['0 - 33', 'Veoma dobar'], ['34 - 66', 'Dobar'],
       ['67 - 99', 'Prihvatljiv'], ['100 - 149', 'Loš'],
       ['150 - 200', 'Veoma Loš'], ['201 +', 'Izuzetno Loš']]};
-  
+
   const uvstate = {
     tableHead: ['UV Indeks:', 'Opis zračenja:'],
     tableData: [
@@ -81,20 +81,20 @@ function HomeScreen({navigation}): React.JSX.Element {
     }).start();};
 
   let settingData = function(json) {
-    if(json.feeds[0].field1 !== null){
+    if(json.feeds[0].field6 !== 'IR'){
       setttData({temperature: Number(json.feeds[0].field1), airH: json.feeds[0].field2, airQ: json.feeds[0].field4, soilH: json.feeds[0].field3, uvIndex: json.feeds[0].field5, createdAt: json.feeds[0].created_at});
     }
   };
   
   let intervalFetchFunc = function() {
     fetch('https://api.thingspeak.com/channels/2429193/feeds.json?api_key=ICM2FPX89P99HRT1&results=1&timezone=Europe/Belgrade').then(x => x.json()).then(json => settingData(json));
-    fadeAnim.resetAnimation();
-    fadeIn();
     
   };
 
   useEffect(() => {
-
+    
+    fadeAnim.resetAnimation();
+    fadeIn();
     if (Number(ttData.airQ) >= 0 && Number(ttData.airQ) <= 25){
       setairQDef('Veoma dobar');
     } else if(Number(ttData.airQ) >= 25 && Number(ttData.airQ) <= 50){
@@ -135,7 +135,7 @@ function HomeScreen({navigation}): React.JSX.Element {
       console.log('running');
       intervalFetchFunc(); //first fetch
 
-      const interval = setInterval(intervalFetchFunc, 120000);
+      const interval = setInterval(intervalFetchFunc, 20000);
     
       return () => clearInterval(interval);
     }
