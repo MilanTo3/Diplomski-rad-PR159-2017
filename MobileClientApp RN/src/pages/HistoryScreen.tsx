@@ -66,7 +66,7 @@ function HistoryScreen({navigation}): React.JSX.Element {
   const windowWidth = Dimensions.get('window').width;
 
   const opcije = ["Temperatura", "Vlažnost vazduha", "Vlažnost zemljišta", "Kvalitet vazduha", "UV indeks"];
-  const labelUnits = ["°C", "%", "%", "ppm", ""]
+  const labelUnits = ["°C", "%", "%", "ppm", ""];
   const range = ["Danas", "Ove nedelje", "Ovog meseca", "Izaberite datum"];
 
   useEffect(() => {
@@ -146,6 +146,8 @@ function HistoryScreen({navigation}): React.JSX.Element {
         return obj;
       });
 
+
+      result = result.filter(item => item["field" + izabranaVelicina.toString()] !== null);
       result = groupBy(result, 'created_at');
 
       result = Object.values(result);
@@ -187,6 +189,7 @@ function HistoryScreen({navigation}): React.JSX.Element {
         return obj;
       });
 
+      result = result.filter(item => item["field" + korelisanaVelicina.toString()] !== null);
       result = groupBy(result, 'created_at');
       result = Object.values(result);
       
