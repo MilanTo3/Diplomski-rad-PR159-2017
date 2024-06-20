@@ -69,6 +69,15 @@ function HistoryScreen({navigation}): React.JSX.Element {
   const labelUnits = ["°C", "%", "%", "ppm", ""];
   const range = ["Danas", "Ove nedelje", "Ovog meseca", "Izaberite datum"];
 
+  const setterFunction = (feeds)  => {
+    if(feeds.length !== 0){
+      setData1(feeds);
+    }else{
+      setText("Ne postoje zabeležene vrednosti telemetrije za odabrani opseg.");
+      setModalVisible(true);
+    }
+  }
+
   useEffect(() => {
     
     NetInfo.fetch().then(state => {
@@ -110,11 +119,10 @@ function HistoryScreen({navigation}): React.JSX.Element {
         }
 
         build = build + temp.toISOString().replace('T', '%20').replace('T', '%20').substring(0, today.toISOString().indexOf('.') + 2) + "&end=" + today.toISOString().replace('T', '%20').substring(0, today.toISOString().indexOf('.') + 2);
-        fetch(build).then(x => x.json()).then(json => setData1(json.feeds)).catch(function(error) {
+        fetch(build).then(x => x.json()).then(json => setterFunction(json.feeds)).catch(function(error) {
           setText("Proverite vašu internet konekciju.");
           setModalVisible(true);
         });
-        setBarVisible(true);
 
         if (korelisanaVelicina !== -1){
           build = 'https://api.thingspeak.com/channels/2429193/fields/' + korelisanaVelicina.toString() + '.json?api_key=ICM2FPX89P99HRT1&timezone=Europe/Belgrade&start=';
@@ -123,7 +131,6 @@ function HistoryScreen({navigation}): React.JSX.Element {
             setText("Proverite vašu internet konekciju.");
             setModalVisible(true);
           });
-          setBarVisible(true);
         }
       }
     }
@@ -133,6 +140,8 @@ function HistoryScreen({navigation}): React.JSX.Element {
   useEffect(() => {
 
     if(data1 && JSON.stringify(data1) !== '[]' && JSON.stringify(data1) !== '{}'){
+      setBarVisible(true);
+
       var propsToKeep = ["field" + izabranaVelicina.toString(), "created_at"];
 
       var result = data1.map(item => {
@@ -176,6 +185,8 @@ function HistoryScreen({navigation}): React.JSX.Element {
   useEffect(() => {
 
     if(data2 && JSON.stringify(data2) !== '[]' && JSON.stringify(data2) !== '{}'){
+      setBarVisible(true);
+
       var propsToKeep = ["field" + korelisanaVelicina.toString(), "created_at"];
 
       var result = data2.map(item => {
