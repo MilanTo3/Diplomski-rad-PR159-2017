@@ -98,10 +98,10 @@ function HistoryScreen({navigation}): React.JSX.Element {
         build = 'https://api.thingspeak.com/channels/2429193/fields/' + izabranaVelicina.toString() + '.json?api_key=ICM2FPX89P99HRT1&timezone=Europe/Belgrade&start=';
         
         let today = new Date();
-        today.setHours(today.getHours() + 1);
+        today.setHours(today.getHours() + 2);
         let temp = new Date();
 
-        temp.setHours(1);
+        temp.setHours(2);
         temp.setMinutes(0);
         temp.setSeconds(1);
         setWidthMultiplier(5);

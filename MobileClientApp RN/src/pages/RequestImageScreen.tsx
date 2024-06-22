@@ -108,7 +108,6 @@ function RequestImageScreen({navigation}): React.JSX.Element {
         let reslink = response.split(' ');
         if(reslink[0] == '200'){
           setLink(reslink[1]);
-          console.log('link:' + reslink[1]);
               
           ReactNativeBlobUtil.fetch('GET', reslink[1], { Authorization: 'Bearer access-token...',})
           .then((res) => {

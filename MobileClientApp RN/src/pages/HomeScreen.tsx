@@ -80,8 +80,7 @@ function HomeScreen({navigation}): React.JSX.Element {
     }).start();};
 
   let settingData = function(json) {
-    console.log("setting data");
-    if(json.feeds[0].field6 !== 'IR'){
+    if(json.feeds[0].field1 !== null){
       setttData({temperature: Number(json.feeds[0].field1), airH: json.feeds[0].field2, airQ: json.feeds[0].field4, soilH: json.feeds[0].field3, uvIndex: json.feeds[0].field5, createdAt: json.feeds[0].created_at});
     }
   };
